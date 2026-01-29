@@ -128,6 +128,120 @@
             background: #FEC8D8;
         }
 
+        /* Settings Button - simplified */
+        .settings-btn {
+            font-size: 1.2rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fdfdfd;
+            border: 2px solid #FFDEE9;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-btn:hover {
+            background: #f0f0f0;
+            transform: rotate(30deg);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #FFB6C1;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #FFDEE9;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            text-align: center;
+            outline: none;
+        }
+
+        .modal-btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            padding: 8px 20px;
+            border-radius: 999px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm {
+            background: #FFB6C1;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #eee;
+            color: #666;
+        }
+
+        .btn-rethink {
+            background: #E0BBE4;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #ffaaaa;
+            color: white;
+            font-size: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .modal-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .moma-suggestion-img {
+            width: 100px;
+            margin: 0 auto 1rem;
+        }
+
         /* Amoeba Topic Menu */
         #topic-menu {
             position: absolute;
@@ -318,6 +432,7 @@
             <button class="action-btn" onclick="openChat()" title="おはなし">💬</button>
             <button class="action-btn" onclick="sleepMoma()" title="ねる">🌙</button>
             <a href="index.html" class="action-btn bg-slate-100" title="もどる">🏠</a>
+            <button class="settings-btn" title="おなまえ" onclick="openSettings()">📛</button>
         </div>
 
         <!-- Topic Menu -->
@@ -345,6 +460,45 @@
 
             <p id="menu-instruction" class="mt-4 text-pink-400 font-bold">どのおはなしにする？</p>
             <img src="./moma-idle.png" id="moma-look-up" alt="looking up moma">
+        </div>
+
+        <!-- Name Registration Modal -->
+        <div id="name-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">おなまえをおしえて！</div>
+                <p class="text-xs text-gray-400 mb-4">ひらがなでいれてね✨</p>
+                <input type="text" id="base-name-input" class="modal-input" placeholder="なまえ（ひらがな）" maxlength="10">
+                <div class="modal-btn-container">
+                    <button class="modal-btn btn-cancel" onclick="closeModal('name-modal')">やめとく</button>
+                    <button class="modal-btn btn-confirm" onclick="requestNickname()">おしえる！</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nickname Suggestion Modal -->
+        <div id="suggestion-modal" class="modal-overlay">
+            <div class="modal-content">
+                <img src="./moma-idle.png" class="moma-suggestion-img" alt="thinking moma">
+                <div id="suggestion-text" class="modal-title">「○○りん」はどうもま？</div>
+                <div class="modal-btn-container">
+                    <button class="modal-btn btn-confirm" onclick="saveNickname()">いいね！✨</button>
+                    <button class="modal-btn btn-rethink" onclick="requestNickname()">ちがうの！</button>
+                    <button class="modal-btn btn-cancel" onclick="closeModal('suggestion-modal')">やばりいいや</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings/Reset Modal -->
+        <div id="settings-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">せってい</div>
+                <div id="current-name-display" class="mb-4 text-gray-600"></div>
+                <button id="reset-name-btn" class="modal-btn btn-reset" onclick="resetNickname()"
+                    style="display:none;">おなまえの登録をけす</button>
+                <div class="mt-4">
+                    <button class="modal-btn btn-cancel" onclick="closeModal('settings-modal')">とじる</button>
+                </div>
+            </div>
         </div>
 
         <!-- Response Bubble -->
@@ -508,6 +662,81 @@
             }
         }
 
+        // --- Nickname System Logic ---
+        let userNickname = localStorage.getItem('moma_user_nickname') || '';
+        let currentSuggestion = '';
+
+        function openSettings() {
+            const settingsModal = document.getElementById('settings-modal');
+            const nameDisplay = document.getElementById('current-name-display');
+            const resetBtn = document.getElementById('reset-name-btn');
+
+            if (userNickname) {
+                nameDisplay.innerText = `いまのおなまえ：${userNickname}`;
+                resetBtn.style.display = 'inline-block';
+            } else {
+                nameDisplay.innerText = 'おなまえが登録されていません';
+                resetBtn.style.display = 'none';
+                // Automatically open name input if not registered
+                setTimeout(() => {
+                    closeModal('settings-modal');
+                    openModal('name-modal');
+                }, 800);
+            }
+            settingsModal.style.display = 'flex';
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function requestNickname() {
+            const input = document.getElementById('base-name-input');
+            const baseName = input.value.trim();
+
+            if (!baseName) {
+                alert('おなまえをいれてね！');
+                return;
+            }
+
+            // Check if Hiragana only
+            if (!/^[ぁ-んー]+$/.test(baseName)) {
+                alert('ひらがなでいれてね✨');
+                return;
+            }
+
+            const suffixes = ['りん', 'っち', 'もま', 'ぴ', 'ちゃん', 'たん', 'にゃん', 'ぽよ'];
+            currentSuggestion = baseName + suffixes[Math.floor(Math.random() * suffixes.length)];
+
+            document.getElementById('suggestion-text').innerText = `「${currentSuggestion}」はどうもま？`;
+
+            closeModal('name-modal');
+            openModal('suggestion-modal');
+        }
+
+        function saveNickname() {
+            userNickname = currentSuggestion;
+            localStorage.setItem('moma_user_nickname', userNickname);
+            closeModal('suggestion-modal');
+            showBubble(`${userNickname}、よろしくもま！💕`);
+
+            moma.classList.add('animate-bounce');
+            setTimeout(() => moma.classList.remove('animate-bounce'), 1000);
+        }
+
+        function resetNickname() {
+            if (confirm('おなまえを消しちゃうもま？')) {
+                userNickname = '';
+                localStorage.removeItem('moma_user_nickname');
+                closeModal('settings-modal');
+                showBubble('おなまえ、わすれちゃったもま...💧');
+            }
+        }
+
         // --- Chat Functions ---
         const topicMenu = document.getElementById('topic-menu');
         const menuTopics = document.getElementById('menu-topics');
@@ -644,7 +873,18 @@
         function showBubble(text) {
             if (bubbleTimer) clearTimeout(bubbleTimer);
 
-            momaBubble.innerText = text;
+            // Occasionally add name to bubble if registered
+            let displayText = text;
+            if (userNickname && Math.random() < 0.3 && !text.includes(userNickname) && text.length < 20 && text !== '...') {
+                const patterns = [
+                    `${userNickname}、${text}`,
+                    `${text}、${userNickname}！`,
+                    `${userNickname}！${text}`
+                ];
+                displayText = patterns[Math.floor(Math.random() * patterns.length)];
+            }
+
+            momaBubble.innerText = displayText;
             momaBubble.style.display = 'block';
 
             // Position bubble above Moma
