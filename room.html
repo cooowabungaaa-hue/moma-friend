@@ -127,6 +127,179 @@
             transform: scale(1.1);
             background: #FEC8D8;
         }
+
+        /* Amoeba Topic Menu */
+        #topic-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 240, 245, 0.9);
+            display: none;
+            /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .topic-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 800px;
+            margin-bottom: 40px;
+        }
+
+        .amoeba-btn {
+            background: white;
+            border: 3px solid #FFDEE9;
+            padding: 20px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff69b4;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+
+            /* Amoeba Shape */
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation: morph 8s ease-in-out infinite, float 4s ease-in-out infinite;
+        }
+
+        .amoeba-btn:nth-child(even) {
+            border-radius: 30% 70% 70% 30% / 50% 60% 40% 50%;
+            animation-delay: -2s;
+        }
+
+        .amoeba-btn:hover {
+            transform: scale(1.1);
+            background: #FFE4E1;
+            border-color: #FFB6C1;
+        }
+
+        @keyframes morph {
+            0% {
+                border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            }
+
+            50% {
+                border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+            }
+
+            100% {
+                border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        #moma-look-up {
+            width: 200px;
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+
+            0%,
+            100% {
+                transform: rotate(-5deg);
+            }
+
+            50% {
+                transform: rotate(5deg);
+            }
+        }
+
+        /* Speech Bubble */
+        .speech-bubble {
+            position: absolute;
+            background: white;
+            border-radius: 20px;
+            padding: 15px 25px;
+            color: #333;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            display: none;
+            max-width: 250px;
+            text-align: center;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 15px 15px 0;
+            border-style: solid;
+            border-color: white transparent transparent;
+        }
+
+        /* Chat Input Container */
+        .chat-input-container {
+            margin-top: 20px;
+            display: none;
+            /* Hidden until topic selected */
+            gap: 10px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 999px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: #eee;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        #user-input {
+            border: none;
+            outline: none;
+            flex-grow: 1;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .send-btn {
+            background: #FFB6C1;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 999px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #FF69B4;
+        }
     </style>
 </head>
 
@@ -142,9 +315,40 @@
         <div class="ui-panel">
             <button class="action-btn" onclick="feedMoma()" title="ごはん">🥪</button>
             <button class="action-btn" onclick="playBall()" title="あそぶ">🎾</button>
+            <button class="action-btn" onclick="openChat()" title="おはなし">💬</button>
             <button class="action-btn" onclick="sleepMoma()" title="ねる">🌙</button>
             <a href="index.html" class="action-btn bg-slate-100" title="もどる">🏠</a>
         </div>
+
+        <!-- Topic Menu -->
+        <div id="topic-menu" onclick="closeChat(event)">
+            <div class="topic-container" id="menu-topics" onclick="event.stopPropagation()">
+                <button class="amoeba-btn" onclick="selectTopic('おやつ')">おやつ🍭</button>
+                <button class="amoeba-btn" onclick="selectTopic('おいしいもの')">おいしいもの😋</button>
+                <button class="amoeba-btn" onclick="selectTopic('これすき')">これすき❤️</button>
+                <button class="amoeba-btn" onclick="selectTopic('つまんない')">つまんない💤</button>
+                <button class="amoeba-btn" onclick="selectTopic('たのし～')">たのし〜✨</button>
+                <button class="amoeba-btn" onclick="selectTopic('こわい')">こわい💧</button>
+                <button class="amoeba-btn" onclick="selectTopic('きいて！')">きいて！📢</button>
+                <button class="amoeba-btn" onclick="selectTopic('おさんぽ')">おさんぽ🐾</button>
+                <button class="amoeba-btn" onclick="selectTopic('だいすき')">だいすき💕</button>
+                <button class="amoeba-btn" onclick="selectTopic('ないしょ話')">ないしょ話🤫</button>
+                <button class="amoeba-btn" onclick="selectTopic('おなかへった')">おなかへった🍚</button>
+                <button class="amoeba-btn" onclick="selectTopic('なに食べよっか～', true)">なに食べよっか～🍴</button>
+            </div>
+
+            <div class="chat-input-container" id="menu-input" onclick="event.stopPropagation()">
+                <button class="back-btn" onclick="showTopics()">←</button>
+                <input type="text" id="user-input" placeholder="もまちゃんになにか話して..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendChat()">送信</button>
+            </div>
+
+            <p id="menu-instruction" class="mt-4 text-pink-400 font-bold">どのおはなしにする？</p>
+            <img src="./moma-idle.png" id="moma-look-up" alt="looking up moma">
+        </div>
+
+        <!-- Response Bubble -->
+        <div id="moma-bubble" class="speech-bubble"></div>
     </div>
 
     <script>
@@ -284,6 +488,169 @@
                 createHeart(momaX + 125, momaY - 50, "💤");
             }
         }
+
+        // --- Chat Functions ---
+        const topicMenu = document.getElementById('topic-menu');
+        const menuTopics = document.getElementById('menu-topics');
+        const menuInput = document.getElementById('menu-input');
+        const menuInstruction = document.getElementById('menu-instruction');
+        const momaBubble = document.getElementById('moma-bubble');
+        const userInput = document.getElementById('user-input');
+
+        let currentTopic = '';
+
+        function openChat() {
+            if (state === 'SLEEPING') return;
+            showTopics();
+            topicMenu.style.display = 'flex';
+        }
+
+        function showTopics() {
+            currentTopic = '';
+            menuTopics.style.display = 'flex';
+            menuInput.style.display = 'none';
+            menuInstruction.innerText = 'どのおはなしにする？';
+            userInput.value = '';
+        }
+
+        const mealSuggestions = [
+            '吉牛の新メニューあるもま？',
+            'もまちゃんはマック行きたいもま～',
+            '帰りにマックフルーリーもたべたいもまね',
+            'おこのみやき最近たべてないもま～',
+            'びっくりドンキーのハンバーグにするもま？',
+            '丸亀製麺でうどんつるつるしたいもまねぇ✨',
+            'サイゼリヤのミラノ風ドリアは鉄板もま！',
+            'スシローで10皿たべるもま～🍣',
+            'スタバの新メニュー、こっそりチェックするもま？',
+            '今日はカレーハウスCoCo壱番屋にしちゃうもま？🍛',
+            '餃子の王将でギョーザぱくぱくするもま！🥟',
+            '今日は奮発して叙々苑の焼肉弁当にするもま...？✨',
+            'モスバーガーのテリヤキ、レタスしゃきしゃきもまよ～',
+            'なか卯の親子丼、ふわとろもまねぇ',
+            '天下一品のこってりラーメン、たまに食べたくなるもま！',
+            'ケンタッキーのオリジナルチキン、スパイスきいてるもま！🍗',
+            '松屋の牛めし、紅生姜たっぷりのせるもま！',
+            'すき家のチー牛、とろとろもま～🧀',
+            'ガストのチーズINハンバーグ、切るとじゅわ～もま！',
+            '富士そばでサクッとおそば食べるもま？',
+            '焼肉きんぐで食べ放題！おなかぽんぽんもま！',
+            '大戸屋の黒酢あんかけ、健康もまねぇ',
+            'やよい軒でおかわり無限ループもま...！🍚',
+            'はなまるうどんの温玉ぶっかけ、つるつるもま～',
+            '築地銀だこのたこ焼き、外カリ中トロもまよ！🐙（揚げ焼きっていうもま）',
+            'サーティワンでトリプルアイスにしちゃうもま！？🍨',
+            '一蘭で集中してラーメンたべるもま...🍜',
+            '牛角で網焼きパーティもま！じゅーじゅー！🔥',
+            'つるとんたんの大きな器、びっくりするもまね',
+            'ミスタードーナツでポン・デ・リング10個たべるもま！🍩',
+            'すき家の高菜めんたい牛丼、ピリ辛で最高もま！',
+            '実はスタバでいっちばんおいしいのってウーロン茶もま'
+        ];
+
+        function selectTopic(topic, isAuto = false) {
+            if (isAuto && topic === 'なに食べよっか～') {
+                topicMenu.style.display = 'none';
+                const suggestion = mealSuggestions[Math.floor(Math.random() * mealSuggestions.length)];
+                showBubble(suggestion);
+                return;
+            }
+            currentTopic = topic;
+            menuTopics.style.display = 'none';
+            menuInput.style.display = 'flex';
+            menuInstruction.innerText = `「${topic}」についておしえて！`;
+            userInput.focus();
+        }
+
+        function closeChat(e) {
+            topicMenu.style.display = 'none';
+        }
+
+        const topicContexts = {
+            'おやつ': ['おいしそう！', 'もまもたべたい！', 'おやつタイムだね✨'],
+            'おいしいもの': ['よだれがでちゃう...🤤', 'いいなぁ～！', 'こんどいっしょにたべよ？'],
+            'これすき': ['それ、もまもすき！', 'ハッピーになれるね✨', 'すてきだねぇ 💕'],
+            'つまんない': ['そんなときは、おどり明かそう！🕺', 'もまが笑わせてあげる！', 'のんびりしよっか💤'],
+            'たのし～': ['わーい！最高だね！✨', 'もっともっとたのしもう！', 'ハッピーハッピー！'],
+            'こわい': ['もまがおばけをやっつける！⚔️', '大丈夫、いっしょにいるよ💧', 'ぎゅーってしてあげる！'],
+            'きいて！': ['うんうん、それでそれで？📢', 'びっくりしちゃうね！', 'すごいお話だ～！✨'],
+            'おさんぽ': ['おさんぽだいすき！🐾', 'どこまでいこうか？', 'しっぽ振っちゃう♪'],
+            'だいすき': ['もまもせかいいちだいすき！！💕', 'ずっといっしょにいようね///', 'ちゅっ！✨'],
+            'ないしょ話': ['もま、口かたいよ🤫', 'ふむふむ...秘密だね✨', 'ドキドキしちゃうね！'],
+            'おなかへった': ['ぐぅ～っておなかなっちゃうね🍚', 'なにかつくる！？', 'ごはんのじかんだー！']
+        };
+
+        function sendChat() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            topicMenu.style.display = 'none';
+            userInput.value = '';
+
+            showBubble('...');
+
+            setTimeout(() => {
+                const contextOptions = topicContexts[currentTopic] || ['うんうん！'];
+                const response = contextOptions[Math.floor(Math.random() * contextOptions.length)];
+                showBubble(response);
+
+                if (Math.random() < 0.4) {
+                    moma.classList.add('animate-bounce');
+                    setTimeout(() => moma.classList.remove('animate-bounce'), 1000);
+                }
+            }, 800);
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                sendChat();
+            }
+        }
+
+        function processSelectedTopicResponse(topic) { // Renamed from original selectTopic
+            topicMenu.style.display = 'none';
+            const possibleResponses = topicContexts[topic]; // Use topicContexts
+            const text = possibleResponses[Math.floor(Math.random() * possibleResponses.length)];
+
+            showBubble(text);
+
+            // Random reaction pose
+            if (topic === 'おやつ' || topic === 'たのし～') {
+                moma.classList.add('animate-bounce');
+                setTimeout(() => moma.classList.remove('animate-bounce'), 1000);
+            }
+        }
+
+        let bubbleTimer = null;
+        function showBubble(text) {
+            if (bubbleTimer) clearTimeout(bubbleTimer);
+
+            momaBubble.innerText = text;
+            momaBubble.style.display = 'block';
+
+            // Position bubble above Moma
+            updateBubblePosition();
+
+            // Hide after a while
+            bubbleTimer = setTimeout(() => {
+                momaBubble.style.display = 'none';
+                bubbleTimer = null;
+            }, 5000);
+        }
+
+        function updateBubblePosition() {
+            if (momaBubble.style.display === 'block') {
+                momaBubble.style.left = (momaX + 125 - momaBubble.offsetWidth / 2) + 'px';
+                momaBubble.style.top = (momaY - momaBubble.offsetHeight - 20) + 'px';
+            }
+        }
+
+        // Update bubble on move
+        const originalUpdatePosition = updatePosition;
+        updatePosition = function () {
+            originalUpdatePosition();
+            updateBubblePosition();
+        };
 
         function createHeart(x, y, char = "❤️") {
             const heart = document.createElement('div');
