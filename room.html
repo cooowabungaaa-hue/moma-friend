@@ -419,9 +419,20 @@
         function walkToRandomSpot() {
             setState('WALKING');
 
-            // Define walkable area (bottom half of screen mostly)
-            const targetX = Math.random() * (width - 300); // keep padding
-            const targetY = (height / 2) + (Math.random() * (height / 2 - 300));
+            // Define dynamic walkable area
+            const padding = 50;
+            const charWidth = 250;
+            const charHeight = 250;
+            const uiPanelHeight = 120; // Estimated height including bottom margin
+
+            const minX = padding;
+            const maxX = Math.max(minX, width - charWidth - padding);
+
+            const minY = height / 2; // Upper limit of floor
+            const maxY = Math.max(minY, height - charHeight - uiPanelHeight);
+
+            const targetX = minX + Math.random() * (maxX - minX);
+            const targetY = minY + Math.random() * (maxY - minY);
 
             // Face direction
             if (targetX > momaX) {
@@ -443,6 +454,14 @@
         }
 
         function updatePosition() {
+            const charWidth = 250;
+            const charHeight = 250;
+            const uiPanelHeight = 100;
+
+            // Clamp positions
+            momaX = Math.max(0, Math.min(momaX, width - charWidth));
+            momaY = Math.max(height / 2, Math.min(momaY, height - charHeight - 20)); // Small 20px buffer from absolute bottom
+
             moma.style.left = momaX + 'px';
             moma.style.top = momaY + 'px';
         }
@@ -666,6 +685,7 @@
         window.addEventListener('resize', () => {
             width = container.offsetWidth;
             height = container.offsetHeight;
+            updatePosition(); // Immediately clamp to new window size
         });
     </script>
 </body>
