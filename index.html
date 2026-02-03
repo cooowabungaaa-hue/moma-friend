@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>もまちゃん Official Web - ですもま！</title>
+    <title>もまちゃん Official Web | 全肯定型ぬいぐるみ生命体</title>
+    <meta name="description" content="全肯定型ぬいぐるみ生命体「もまちゃん」の公式ウェブサイト。がんばるあなたに、極上のふわふわとやさしい言葉をお届けします。">
+    <meta property="og:title" content="もまちゃん Official Web">
+    <meta property="og:description" content="がんばるあなたに、極上のふわふわを。もまちゃんがあなたの全てを肯定してあげるもま。">
+    <meta property="og:image" content="./moma-chan.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
@@ -73,7 +77,8 @@
         <div class="space-x-4 text-sm font-bold">
             <a href="#about" class="hover:text-pink-400 transition">もまって？</a>
             <button onclick="openPowerModal()" class="hover:text-pink-400 transition">できること</button>
-            <button onclick="hugMoma()" class="bg-[#8d6e63] text-white px-4 py-2 rounded-full text-xs">抱きしめるもま！</button>
+            <button onclick="hugMoma(event)"
+                class="bg-[#8d6e63] text-white px-4 py-2 rounded-full text-xs">抱きしめるもま！</button>
         </div>
     </nav>
 
@@ -205,24 +210,34 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
                 <div class="bg-[#fff9f0] p-4 rounded-2xl border border-orange-100">
-                    <div class="text-2xl mb-2">👂</div>
+                    <div class="text-2xl mb-2">💬</div>
                     <div class="font-bold text-moma-brown text-sm">全肯定リスニング</div>
-                    <div class="text-xs text-slate-600 mt-1">あなたが何を言っても「いいよぉ〜」って優しく肯定してあげるもま。</div>
+                    <div class="text-xs text-slate-600 mt-1">「おやつ」「ないしょ話」など、11個以上のトピックであなたのお話を聞くもま。</div>
                 </div>
                 <div class="bg-[#f0f9ff] p-4 rounded-2xl border border-blue-100">
-                    <div class="text-2xl mb-2">🥪</div>
-                    <div class="font-bold text-moma-brown text-sm">もぐもぐヒーリング</div>
-                    <div class="text-xs text-slate-600 mt-1">一緒におやつやご飯を食べて、心の栄養をチャージするもまよ！</div>
+                    <div class="text-2xl mb-2">🍴</div>
+                    <div class="font-bold text-moma-brown text-sm">ごはんの提案</div>
+                    <div class="text-xs text-slate-600 mt-1">「なに食べよっか〜」と聞けば、33種類のチェーン店からおすすめを教えるもま！</div>
                 </div>
                 <div class="bg-[#fff0f5] p-4 rounded-2xl border border-pink-100">
                     <div class="text-2xl mb-2">🌙</div>
                     <div class="font-bold text-moma-brown text-sm">夢の中までいっしょ</div>
-                    <div class="text-xs text-slate-600 mt-1">隣でスヤスヤ寝るもま。あなたが心地よい夢を見られるように、そっと見守るもまよ。</div>
+                    <div class="text-xs text-slate-600 mt-1">夜になると、満天の星空の下で子守唄を奏でながら一緒にスヤスヤ寝るもまよ。</div>
                 </div>
                 <div class="bg-[#f5f3ff] p-4 rounded-2xl border border-purple-100">
                     <div class="text-2xl mb-2">🐾</div>
                     <div class="font-bold text-moma-brown text-sm">のんびりお散歩</div>
-                    <div class="text-xs text-slate-600 mt-1">何もしない贅沢を一緒に味わうもま。歩くだけで100点満点だもま✨</div>
+                    <div class="text-xs text-slate-600 mt-1">お部屋の中を自由にお散歩。歩くだけで100点満点！オート散歩モードもあるもま。</div>
+                </div>
+                <div class="bg-[#effef3] p-4 rounded-2xl border border-green-100">
+                    <div class="text-2xl mb-2">📛</div>
+                    <div class="font-bold text-moma-brown text-sm">おなまえ登録</div>
+                    <div class="text-xs text-slate-600 mt-1">あなたの名前を教えて！「○○りん」「○○もま」など可愛いあだ名で呼ぶもまよ。</div>
+                </div>
+                <div class="bg-[#fffdf0] p-4 rounded-2xl border border-yellow-100">
+                    <div class="text-2xl mb-2">❤️</div>
+                    <div class="font-bold text-moma-brown text-sm">いつでもなでなで</div>
+                    <div class="text-xs text-slate-600 mt-1">なでてくれると、もまはとっても喜ぶもま！ハートが溢れ出しちゃうもま〜💕</div>
                 </div>
             </div>
 
@@ -262,8 +277,22 @@
             const bubble = document.getElementById('speech-bubble');
             const text = document.getElementById('speech-text');
 
+            // Get nickname from localStorage (shared with room.html)
+            const userNickname = localStorage.getItem('moma_user_nickname') || '';
+
             // Randomly select a quote
-            const randomWord = momaWords[Math.floor(Math.random() * momaWords.length)];
+            let randomWord = momaWords[Math.floor(Math.random() * momaWords.length)];
+
+            // Occasionally add name if registered
+            if (userNickname && Math.random() < 0.3 && !randomWord.includes(userNickname)) {
+                const patterns = [
+                    `${userNickname}、${randomWord}`,
+                    `${randomWord}、${userNickname}！`,
+                    `${userNickname}！${randomWord}`
+                ];
+                randomWord = patterns[Math.floor(Math.random() * patterns.length)];
+            }
+
             text.innerText = randomWord;
 
             // Show bubble animation
@@ -275,11 +304,37 @@
             window.hideBubbleTimeout = setTimeout(() => {
                 bubble.classList.remove('opacity-100', 'translate-y-0');
                 bubble.classList.add('opacity-0', 'translate-y-4');
-            }, 4000);
+            }, 5000);
         }
 
-        function hugMoma() {
-            alert("ぎゅーーーーっ！！！（あったかいにおいがする...）");
+        function hugMoma(e) {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight },
+                colors: ['#ff8da1', '#8d6e63', '#ffffff']
+            });
+
+            const randomMsg = [
+                "ぎゅーーーーっ！！！（あったかいにおいがする...）",
+                "えへへ、あったかいもま〜💕",
+                "ずっと、こうしていたいもま...",
+                "あなたの心音、トクトクって優しい音がするもま✨"
+            ];
+            const msg = randomMsg[Math.floor(Math.random() * randomMsg.length)];
+
+            // Temporary bubble instead of alert for better UX
+            const bubble = document.getElementById('speech-bubble');
+            const text = document.getElementById('speech-text');
+            text.innerText = msg;
+            bubble.classList.remove('opacity-0', 'translate-y-4');
+            bubble.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(window.hideBubbleTimeout);
+            window.hideBubbleTimeout = setTimeout(() => {
+                bubble.classList.remove('opacity-100', 'translate-y-0');
+                bubble.classList.add('opacity-0', 'translate-y-4');
+            }, 5000);
         }
 
         function inviteMoma() {
