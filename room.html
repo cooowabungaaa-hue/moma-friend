@@ -17,8 +17,8 @@
             width: 100vw;
             height: 100vh;
             background-image: url('./room-bg.png');
-            background-size: 140% auto;
-            background-position: center 35%;
+            background-size: cover;
+            background-position: center bottom;
             position: relative;
             background-repeat: no-repeat;
             background-color: #fdf6ec;
@@ -667,9 +667,9 @@
 
         // Initialize Position
         updatePosition();
-        setState('IDLE'); // Ensure initial state is set correctly with image
+        setState('IDLE', false); // Ensure initial state is set correctly with image
 
-        function setState(newState) {
+        function setState(newState, isSmiling = false) {
             state = newState;
 
             // Reset animations that might conflict (keep position transitions)
@@ -678,15 +678,15 @@
             // Set Image and Animation based on State
             switch (state) {
                 case 'IDLE':
-                    momaImg.src = './moma-idle.png';
+                    momaImg.src = isSmiling ? './moma-idle_02.png' : './moma-idle.png';
                     moma.classList.add('breathe');
                     break;
                 case 'WALKING':
-                    momaImg.src = './moma-walk.png';
+                    momaImg.src = isSmiling ? './moma-walk_02.png' : './moma-walk.png';
                     moma.classList.add('walk');
                     break;
                 case 'EATING':
-                    momaImg.src = './moma-eat.png';
+                    momaImg.src = './moma-eat_02.png'; // Improved: always use smiling for eating
                     moma.classList.add('breathe');
                     break;
                 case 'SLEEPING':
@@ -714,8 +714,8 @@
                 // Walk to new random position
                 walkToRandomSpot();
             } else {
-                // Idle
-                setState('IDLE');
+                // Idle (occasionally smile)
+                setState('IDLE', Math.random() < 0.3);
             }
         }
 
@@ -755,7 +755,10 @@
 
         function walkToRandomSpot() {
             if (state === 'EATING') return;
-            setState('WALKING');
+
+            // Randomly smile while walking
+            const smilesWhileWalking = Math.random() < 0.4;
+            setState('WALKING', smilesWhileWalking);
 
             // Define dynamic walkable area
             const padding = 20;
@@ -767,8 +770,8 @@
             const maxX = Math.max(minX, width - charWidth - padding);
 
             // Responsive floor logic: 
-            // On desktop, floor is higher up. On mobile (background-size: cover), it covers bottom half.
-            const floorLevel = (window.innerWidth <= 768) ? 0.6 : 0.5;
+            // On desktop, floor is higher up. On mobile, it covers bottom half.
+            const floorLevel = (window.innerWidth <= 768) ? 0.65 : 0.45;
             const minY = height * floorLevel;
             const maxY = Math.max(minY, height - charHeight - uiPanelHeight);
 
@@ -791,7 +794,7 @@
 
             setTimeout(() => {
                 if (state === 'WALKING' && !isWalkingMode) {
-                    setState('IDLE');
+                    setState('IDLE', smilesWhileWalking); // Keep the expression if he was smiling
                 }
             }, 2500);
         }
@@ -818,11 +821,22 @@
                 showBubble("すやすや...💤");
                 return;
             }
+
+            // Trigger smile
+            setState(state, true);
+
             // Reaction
             moma.classList.add('animate-bounce');
             createHeart(momaX + 125, momaY);
             showBubble(["なでなで～🎵", "えへへ、すきもま💕", "あったかいもま✨"][Math.floor(Math.random() * 3)]);
-            setTimeout(() => moma.classList.remove('animate-bounce'), 1000);
+
+            setTimeout(() => {
+                moma.classList.remove('animate-bounce');
+                // Return to neutral or random smile after a bit
+                if (state !== 'EATING' && state !== 'SLEEPING') {
+                    setState(state, Math.random() < 0.2);
+                }
+            }, 2000);
         }
 
         function toggleFoodMenu() {
