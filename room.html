@@ -414,23 +414,137 @@
         .send-btn:hover {
             background: #FF69B4;
         }
+
+        /* Night Sky Effect */
+        #night-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #0d1b2a 0%, #1b263b 100%);
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle var(--duration) infinite ease-in-out var(--delay);
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: scale(1.2);
+            }
+        }
+
+        /* Sub Menu Styling (Food Menu) */
+        .sub-menu {
+            position: absolute;
+            bottom: 7rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 0.8rem;
+            border-radius: 20px;
+            display: none;
+            gap: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            z-index: 40;
+            border: 2px solid #FFDEE9;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+        }
+
+        .sub-menu.active {
+            display: flex;
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .sub-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .sub-btn:hover {
+            transform: scale(1.1);
+            background: #fff0f5;
+        }
+
+        .sub-btn span {
+            font-size: 1.5rem;
+        }
+
+        .sub-btn label {
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: #888;
+            cursor: pointer;
+        }
+
+        /* Continuous Walk Indicator */
+        .walking-mode .action-btn[onclick="playBall()"] {
+            background: #FFB6C1;
+            box-shadow: 0 0 15px rgba(255, 182, 193, 0.6);
+            border-color: #FF69B4;
+        }
     </style>
 </head>
 
 <body>
 
     <div id="room-container">
+        <!-- Night Overlay -->
+        <div id="night-overlay"></div>
+
         <!-- Moma-chan -->
         <div id="moma-character" class="breathe" onclick="petMoma()">
             <img id="moma-img" src="./moma-idle.png" alt="Moma-chan" style="width: 100%; pointer-events: none;">
         </div>
 
+        <!-- Food Sub Menu -->
+        <div id="food-menu" class="sub-menu">
+            <div class="sub-btn" onclick="feedMoma('meal')">
+                <span>🍚</span>
+                <label>ごはん</label>
+            </div>
+            <div class="sub-btn" onclick="feedMoma('sweets')">
+                <span>🍰</span>
+                <label>おやつ</label>
+            </div>
+            <div class="sub-btn" onclick="feedMoma('drink')">
+                <span>🥤</span>
+                <label>のみもの</label>
+            </div>
+        </div>
+
         <!-- UI Controls (Tamagotchi Style) -->
         <div class="ui-panel">
-            <button class="action-btn" onclick="feedMoma()" title="ごはん">🥪</button>
-            <button class="action-btn" onclick="playBall()" title="あそぶ">🎾</button>
+            <button class="action-btn" onclick="toggleFoodMenu()" title="なにかたべる？">🥪</button>
+            <button class="action-btn" onclick="toggleWalkMode()" title="おさんぽモード">🐾</button>
             <button class="action-btn" onclick="openChat()" title="おはなし">💬</button>
-            <button class="action-btn" onclick="sleepMoma()" title="ねる">🌙</button>
+            <button class="action-btn" onclick="sleepMoma()" title="夢の中へ">🌙</button>
             <a href="index.html" class="action-btn bg-slate-100" title="もどる">🏠</a>
             <button class="settings-btn" title="おなまえ" onclick="openSettings()">📛</button>
         </div>
@@ -570,38 +684,71 @@
             }
         }
 
+        let isWalkingMode = false;
+        let walkInterval = null;
+
+        function toggleWalkMode() {
+            if (state === 'SLEEPING') return;
+            isWalkingMode = !isWalkingMode;
+
+            if (isWalkingMode) {
+                document.body.classList.add('walking-mode');
+                showBubble("おさんぽモード、オンもま！🐾");
+                startContinuousWalk();
+            } else {
+                document.body.classList.remove('walking-mode');
+                showBubble("おさんぽおわりもま～✨");
+                stopContinuousWalk();
+            }
+        }
+
+        function startContinuousWalk() {
+            if (walkInterval) clearInterval(walkInterval);
+            walkToRandomSpot();
+            walkInterval = setInterval(() => {
+                if (isWalkingMode && state !== 'SLEEPING' && state !== 'EATING') {
+                    walkToRandomSpot();
+                }
+            }, 4000);
+        }
+
+        function stopContinuousWalk() {
+            if (walkInterval) clearInterval(walkInterval);
+            walkInterval = null;
+            setState('IDLE');
+        }
+
         function walkToRandomSpot() {
+            if (state === 'EATING') return;
             setState('WALKING');
 
             // Define dynamic walkable area
             const padding = 50;
             const charWidth = 250;
             const charHeight = 250;
-            const uiPanelHeight = 120; // Estimated height including bottom margin
+            const uiPanelHeight = 120;
 
             const minX = padding;
             const maxX = Math.max(minX, width - charWidth - padding);
 
-            const minY = height / 2; // Upper limit of floor
+            const minY = height / 2;
             const maxY = Math.max(minY, height - charHeight - uiPanelHeight);
 
             const targetX = minX + Math.random() * (maxX - minX);
             const targetY = minY + Math.random() * (maxY - minY);
 
-            // Face direction
             if (targetX > momaX) {
-                moma.style.transform = "scaleX(-1)"; // Face Right
+                moma.style.transform = "scaleX(-1)";
             } else {
-                moma.style.transform = "scaleX(1)"; // Face Left
+                moma.style.transform = "scaleX(1)";
             }
 
             momaX = targetX;
             momaY = targetY;
             updatePosition();
 
-            // After move duration (CSS transition 3s), go back to Idle
             setTimeout(() => {
-                if (state === 'WALKING') {
+                if (state === 'WALKING' && !isWalkingMode) {
                     setState('IDLE');
                 }
             }, 3000);
@@ -623,23 +770,49 @@
         function petMoma() {
             if (state === 'SLEEPING') {
                 createHeart(momaX + 125, momaY, "💤");
+                showBubble("すやすや...💤");
                 return;
             }
             // Reaction
-            moma.classList.add('animate-bounce'); // Tailwind bouce
+            moma.classList.add('animate-bounce');
             createHeart(momaX + 125, momaY);
+            showBubble(["なでなで～🎵", "えへへ、すきもま💕", "あったかいもま✨"][Math.floor(Math.random() * 3)]);
             setTimeout(() => moma.classList.remove('animate-bounce'), 1000);
         }
 
-        function feedMoma() {
+        function toggleFoodMenu() {
             if (state === 'SLEEPING') return;
+            const menu = document.getElementById('food-menu');
+            menu.classList.toggle('active');
+        }
+
+        function feedMoma(type = 'meal') {
+            document.getElementById('food-menu').classList.remove('active');
+            if (state === 'SLEEPING') return;
+
             setState('EATING');
-            createHeart(momaX + 125, momaY - 50, "🥪");
-            // Jump to center maybe? Or just eat where is
+
+            let emoji = "🥪";
+            let msg = "もぐもぐ...😋";
+
+            if (type === 'meal') {
+                emoji = "🍚";
+                msg = "ごはんおいしいもま！🍚";
+            } else if (type === 'sweets') {
+                emoji = "🍰";
+                msg = "あま～い！しあわせもま💕";
+            } else if (type === 'drink') {
+                emoji = "🥤";
+                msg = "ごくごく...ぷはー！✨";
+            }
+
+            createHeart(momaX + 125, momaY - 50, emoji);
+            showBubble(msg);
+
             setTimeout(() => {
                 createHeart(momaX + 125, momaY - 50, "❤️");
-                createHeart(momaX + 150, momaY - 80, "😋");
                 setState('IDLE');
+                if (isWalkingMode) startContinuousWalk();
             }, 2000);
         }
 
@@ -649,16 +822,80 @@
             walkToRandomSpot(); // Excitement
         }
 
+        // Night/Sleep Logic
+        let audioCtx = null;
+        let sleepBgmPlaying = false;
+
+        function createStars() {
+            const overlay = document.getElementById('night-overlay');
+            overlay.innerHTML = '';
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 3 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                star.style.setProperty('--delay', (Math.random() * 5) + 's');
+                overlay.appendChild(star);
+            }
+        }
+
+        function playLullaby() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (sleepBgmPlaying) return;
+            sleepBgmPlaying = true;
+
+            const notes = [261.63, 329.63, 392.00, 329.63, 440.00, 392.00, 349.23, 329.63];
+            let step = 0;
+
+            function playNote() {
+                if (!sleepBgmPlaying) return;
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(notes[step], audioCtx.currentTime);
+
+                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.5);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 3);
+
+                step = (step + 1) % notes.length;
+                setTimeout(playNote, 2500);
+            }
+            playNote();
+        }
+
+        function stopLullaby() {
+            sleepBgmPlaying = false;
+        }
+
         function sleepMoma() {
+            const overlay = document.getElementById('night-overlay');
             if (state === 'SLEEPING') {
-                // Wake up
                 setState('IDLE');
-                moma.style.filter = "drop-shadow(0 10px 15px rgba(0,0,0,0.1))"; // restore brightness
+                moma.style.filter = "drop-shadow(0 10px 15px rgba(0,0,0,0.1))";
                 createHeart(momaX + 125, momaY - 50, "☀️");
+                overlay.style.opacity = '0';
+                stopLullaby();
+                if (isWalkingMode) startContinuousWalk();
             } else {
                 setState('SLEEPING');
-                moma.style.filter = "brightness(0.8) sepia(0.2)"; // Sleepy look
+                moma.style.filter = "brightness(0.8) sepia(0.2)";
                 createHeart(momaX + 125, momaY - 50, "💤");
+                overlay.style.opacity = '0.8';
+                createStars();
+                playLullaby();
+                if (isWalkingMode) stopContinuousWalk();
             }
         }
 
@@ -838,7 +1075,17 @@
             showBubble('...');
 
             setTimeout(() => {
-                const contextOptions = topicContexts[currentTopic] || ['うんうん！'];
+                // Affirmative responses for anything the user says
+                const affirmativeBase = [
+                    "うんうん、そうだね✨",
+                    "もまはいつでもあなたの味方だよ💕",
+                    "いいんだよ、そのままで大丈夫もま。",
+                    "がんばってるね、えらいえらいもま！💮",
+                    "ゆっくり休んでいいんだよ💤",
+                    "もまといっしょに、のんびりしよ？✨"
+                ];
+
+                const contextOptions = topicContexts[currentTopic] || affirmativeBase;
                 const response = contextOptions[Math.floor(Math.random() * contextOptions.length)];
                 showBubble(response);
 
@@ -852,20 +1099,6 @@
         function handleKeyPress(e) {
             if (e.key === 'Enter') {
                 sendChat();
-            }
-        }
-
-        function processSelectedTopicResponse(topic) { // Renamed from original selectTopic
-            topicMenu.style.display = 'none';
-            const possibleResponses = topicContexts[topic]; // Use topicContexts
-            const text = possibleResponses[Math.floor(Math.random() * possibleResponses.length)];
-
-            showBubble(text);
-
-            // Random reaction pose
-            if (topic === 'おやつ' || topic === 'たのし～') {
-                moma.classList.add('animate-bounce');
-                setTimeout(() => moma.classList.remove('animate-bounce'), 1000);
             }
         }
 

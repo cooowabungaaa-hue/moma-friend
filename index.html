@@ -72,7 +72,7 @@
         <div class="text-2xl font-bold text-moma-brown">🧸 Moma Lab.</div>
         <div class="space-x-4 text-sm font-bold">
             <a href="#about" class="hover:text-pink-400 transition">もまって？</a>
-            <a href="#power" class="hover:text-pink-400 transition">できること</a>
+            <button onclick="openPowerModal()" class="hover:text-pink-400 transition">できること</button>
             <button onclick="hugMoma()" class="bg-[#8d6e63] text-white px-4 py-2 rounded-full text-xs">抱きしめるもま！</button>
         </div>
     </nav>
@@ -99,7 +99,7 @@
                 <div
                     class="absolute inset-0 bg-white/50 blur-2xl rounded-full scale-90 group-hover:scale-110 transition duration-700">
                 </div>
-                <img src="./moma-chan.png" alt="もまちゃん"
+                <img src="./moma-chan-transparent.png" alt="もまちゃん"
                     class="w-64 md:w-80 relative z-10 animate-float drop-shadow-xl hover:brightness-105 transition duration-500 organic-shape">
             </div>
 
@@ -191,6 +191,47 @@
             </p>
             <button onclick="window.location.href='room.html'"
                 class="bg-[#ff8da1] text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-pink-400 transition hover:scale-105">よろしくね！</button>
+        </div>
+    </div>
+
+    <!-- Power Modal (What Moma Can Do) -->
+    <div id="power-modal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-500 flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-[3rem] p-8 max-w-lg w-full text-center relative transform scale-90 transition-transform duration-500 shadow-2xl border-4 border-[#eef2ff]">
+            <button onclick="closePowerModal()"
+                class="absolute top-4 right-6 text-2xl text-slate-400 hover:text-indigo-400 transition">&times;</button>
+            <h3 class="text-2xl font-bold text-moma-brown mb-6">もまちゃんができること✨</h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                <div class="bg-[#fff9f0] p-4 rounded-2xl border border-orange-100">
+                    <div class="text-2xl mb-2">👂</div>
+                    <div class="font-bold text-moma-brown text-sm">全肯定リスニング</div>
+                    <div class="text-xs text-slate-600 mt-1">あなたが何を言っても「いいよぉ〜」って優しく肯定してあげるもま。</div>
+                </div>
+                <div class="bg-[#f0f9ff] p-4 rounded-2xl border border-blue-100">
+                    <div class="text-2xl mb-2">🥪</div>
+                    <div class="font-bold text-moma-brown text-sm">もぐもぐヒーリング</div>
+                    <div class="text-xs text-slate-600 mt-1">一緒におやつやご飯を食べて、心の栄養をチャージするもまよ！</div>
+                </div>
+                <div class="bg-[#fff0f5] p-4 rounded-2xl border border-pink-100">
+                    <div class="text-2xl mb-2">🌙</div>
+                    <div class="font-bold text-moma-brown text-sm">夢の中までいっしょ</div>
+                    <div class="text-xs text-slate-600 mt-1">隣でスヤスヤ寝るもま。あなたが心地よい夢を見られるように、そっと見守るもまよ。</div>
+                </div>
+                <div class="bg-[#f5f3ff] p-4 rounded-2xl border border-purple-100">
+                    <div class="text-2xl mb-2">🐾</div>
+                    <div class="font-bold text-moma-brown text-sm">のんびりお散歩</div>
+                    <div class="text-xs text-slate-600 mt-1">何もしない贅沢を一緒に味わうもま。歩くだけで100点満点だもま✨</div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="closePowerModal()"
+                    class="bg-slate-100 text-slate-500 px-8 py-3 rounded-full font-bold hover:bg-slate-200 transition">とじる</button>
+                <button onclick="window.location.href='room.html'"
+                    class="bg-[#ff8da1] text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-pink-400 transition hover:scale-105">もまのお部屋でやってみる！✨</button>
+            </div>
         </div>
     </div>
 
@@ -292,6 +333,27 @@
             modalContent.classList.remove('scale-100');
             modalContent.classList.add('scale-90');
 
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 500);
+        }
+
+        function openPowerModal() {
+            const modal = document.getElementById('power-modal');
+            const modalContent = modal.querySelector('div');
+            modal.classList.remove('hidden');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-90');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closePowerModal() {
+            const modal = document.getElementById('power-modal');
+            const modalContent = modal.querySelector('div');
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-90');
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 500);
