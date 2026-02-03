@@ -17,9 +17,27 @@
             width: 100vw;
             height: 100vh;
             background-image: url('./room-bg.png');
-            background-size: cover;
-            background-position: center;
+            background-size: 140% auto;
+            /* Zoom in to hide the outer white borders and bottom palette */
+            background-position: center 35%;
+            /* Center on the room area specifically */
             position: relative;
+            background-repeat: no-repeat;
+            background-color: #fdf6ec;
+            /* Fallback cozy color */
+        }
+
+        /* Add a subtle overlay to make it look intentionally stylistic and hide bottom edge */
+        #room-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.4), transparent);
+            pointer-events: none;
+            z-index: 1;
         }
 
         /* Moma-chan Character */
@@ -27,10 +45,18 @@
             position: absolute;
             width: 250px;
             height: auto;
-            transition: top 3s ease-in-out, left 3s ease-in-out, transform 0.3s;
+            /* Bouncy movement transition */
+            transition: top 2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                left 2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.15));
             z-index: 10;
+        }
+
+        #moma-character:active {
+            transition: none;
+            /* Instant feedback on click/pet */
         }
 
         /* Breathing Animation */
@@ -50,9 +76,9 @@
             }
         }
 
-        /* Walking Animation (bobbing) */
+        /* Walking Animation (bobbing) - made slightly snappier */
         .walk {
-            animation: walk 0.5s ease-in-out infinite;
+            animation: walk 0.4s ease-in-out infinite;
         }
 
         @keyframes walk {
@@ -737,21 +763,26 @@
             const targetX = minX + Math.random() * (maxX - minX);
             const targetY = minY + Math.random() * (maxY - minY);
 
-            if (targetX > momaX) {
-                moma.style.transform = "scaleX(-1)";
-            } else {
-                moma.style.transform = "scaleX(1)";
-            }
+            // Small delay to "think" before turning and moving
+            setTimeout(() => {
+                const flip = targetX > momaX ? -1 : 1;
+                moma.style.transform = `scaleX(${flip}) scale(0.95)`; // Squish slightly while moving
 
-            momaX = targetX;
-            momaY = targetY;
-            updatePosition();
+                momaX = targetX;
+                momaY = targetY;
+                updatePosition();
+
+                // Return to normal scale after move starts
+                setTimeout(() => {
+                    moma.style.transform = `scaleX(${flip}) scale(1)`;
+                }, 500);
+            }, 300);
 
             setTimeout(() => {
                 if (state === 'WALKING' && !isWalkingMode) {
                     setState('IDLE');
                 }
-            }, 3000);
+            }, 2500);
         }
 
         function updatePosition() {
