@@ -307,14 +307,7 @@
             }, 5000);
         }
 
-        function hugMoma(e) {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight },
-                colors: ['#ff8da1', '#8d6e63', '#ffffff']
-            });
-
+        function hugMoma() {
             const randomMsg = [
                 "ぎゅーーーーっ！！！（あったかいにおいがする...）",
                 "えへへ、あったかいもま〜💕",
@@ -322,19 +315,7 @@
                 "あなたの心音、トクトクって優しい音がするもま✨"
             ];
             const msg = randomMsg[Math.floor(Math.random() * randomMsg.length)];
-
-            // Temporary bubble instead of alert for better UX
-            const bubble = document.getElementById('speech-bubble');
-            const text = document.getElementById('speech-text');
-            text.innerText = msg;
-            bubble.classList.remove('opacity-0', 'translate-y-4');
-            bubble.classList.add('opacity-100', 'translate-y-0');
-
-            clearTimeout(window.hideBubbleTimeout);
-            window.hideBubbleTimeout = setTimeout(() => {
-                bubble.classList.remove('opacity-100', 'translate-y-0');
-                bubble.classList.add('opacity-0', 'translate-y-4');
-            }, 5000);
+            alert(msg);
         }
 
         function inviteMoma() {
@@ -413,7 +394,7 @@
                 modal.classList.add('hidden');
                 // Clear hash if it was #power
                 if (window.location.hash === '#power') {
-                    history.replaceState(null, null, ' ');
+                    history.replaceState(null, null, window.location.pathname + window.location.search);
                 }
             }, 500);
         }
@@ -424,7 +405,8 @@
                 openPowerModal();
             } else {
                 const powerModal = document.getElementById('power');
-                if (powerModal && !powerModal.classList.contains('hidden')) {
+                // Only automatically close if the modal is actually visible/open
+                if (powerModal && !powerModal.classList.contains('hidden') && window.location.hash !== '#power') {
                     closePowerModal();
                 }
             }

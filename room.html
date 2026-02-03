@@ -18,13 +18,17 @@
             height: 100vh;
             background-image: url('./room-bg.png');
             background-size: 140% auto;
-            /* Zoom in to hide the outer white borders and bottom palette */
             background-position: center 35%;
-            /* Center on the room area specifically */
             position: relative;
             background-repeat: no-repeat;
             background-color: #fdf6ec;
-            /* Fallback cozy color */
+        }
+
+        @media (max-width: 768px) {
+            #room-container {
+                background-size: cover;
+                background-position: center bottom;
+            }
         }
 
         /* Add a subtle overlay to make it look intentionally stylistic and hide bottom edge */
@@ -45,13 +49,18 @@
             position: absolute;
             width: 250px;
             height: auto;
-            /* Bouncy movement transition */
             transition: top 2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
                 left 2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
                 transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.15));
             z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            #moma-character {
+                width: 180px;
+            }
         }
 
         #moma-character:active {
@@ -530,7 +539,7 @@
         }
 
         /* Continuous Walk Indicator */
-        .walking-mode .action-btn[onclick="playBall()"] {
+        .walking-mode .action-btn[onclick="toggleWalkMode()"] {
             background: #FFB6C1;
             box-shadow: 0 0 15px rgba(255, 182, 193, 0.6);
             border-color: #FF69B4;
@@ -749,15 +758,18 @@
             setState('WALKING');
 
             // Define dynamic walkable area
-            const padding = 50;
-            const charWidth = 250;
-            const charHeight = 250;
+            const padding = 20;
+            const charWidth = moma.offsetWidth;
+            const charHeight = moma.offsetHeight;
             const uiPanelHeight = 120;
 
             const minX = padding;
             const maxX = Math.max(minX, width - charWidth - padding);
 
-            const minY = height / 2;
+            // Responsive floor logic: 
+            // On desktop, floor is higher up. On mobile (background-size: cover), it covers bottom half.
+            const floorLevel = (window.innerWidth <= 768) ? 0.6 : 0.5;
+            const minY = height * floorLevel;
             const maxY = Math.max(minY, height - charHeight - uiPanelHeight);
 
             const targetX = minX + Math.random() * (maxX - minX);
@@ -766,13 +778,12 @@
             // Small delay to "think" before turning and moving
             setTimeout(() => {
                 const flip = targetX > momaX ? -1 : 1;
-                moma.style.transform = `scaleX(${flip}) scale(0.95)`; // Squish slightly while moving
+                moma.style.transform = `scaleX(${flip}) scale(0.95)`;
 
                 momaX = targetX;
                 momaY = targetY;
                 updatePosition();
 
-                // Return to normal scale after move starts
                 setTimeout(() => {
                     moma.style.transform = `scaleX(${flip}) scale(1)`;
                 }, 500);
@@ -786,13 +797,16 @@
         }
 
         function updatePosition() {
-            const charWidth = 250;
-            const charHeight = 250;
-            const uiPanelHeight = 100;
+            const charWidth = moma.offsetWidth;
+            const charHeight = moma.offsetHeight;
 
             // Clamp positions
             momaX = Math.max(0, Math.min(momaX, width - charWidth));
-            momaY = Math.max(height / 2, Math.min(momaY, height - charHeight - 20)); // Small 20px buffer from absolute bottom
+
+            // Adjust floor clamp based on responsive floor level
+            const floorLevel = (window.innerWidth <= 768) ? 0.6 : 0.5;
+            const minY = height * floorLevel;
+            momaY = Math.max(minY, Math.min(momaY, height - charHeight - 20));
 
             moma.style.left = momaX + 'px';
             moma.style.top = momaY + 'px';
@@ -1030,39 +1044,39 @@
         }
 
         const mealSuggestions = [
-            '吉牛の新メニューあるもま？',
-            'もまちゃんはマック行きたいもま～',
-            '帰りにマックフルーリーもたべたいもまね',
-            'おこのみやき最近たべてないもま～',
+            '吉野家の牛丼、つゆだくにするもま？',
+            'もまちゃんはマクドナルドのポテトが食べたいもま～🍟',
+            'ロッテリアの絶品チーズバーガー、気になるもま！',
+            'おこのみやき道とん堀で、ぽんぽこぽんもま！🦝',
             'びっくりドンキーのハンバーグにするもま？',
             '丸亀製麺でうどんつるつるしたいもまねぇ✨',
             'サイゼリヤのミラノ風ドリアは鉄板もま！',
             'スシローで10皿たべるもま～🍣',
-            'スタバの新メニュー、こっそりチェックするもま？',
+            'くら寿司でびっくらポン当てるもま！🎯',
             '今日はカレーハウスCoCo壱番屋にしちゃうもま？🍛',
             '餃子の王将でギョーザぱくぱくするもま！🥟',
-            '今日は奮発して叙々苑の焼肉弁当にするもま...？✨',
+            '大阪王将のふわとろ天津飯も捨てがたいもま...',
             'モスバーガーのテリヤキ、レタスしゃきしゃきもまよ～',
             'なか卯の親子丼、ふわとろもまねぇ',
             '天下一品のこってりラーメン、たまに食べたくなるもま！',
             'ケンタッキーのオリジナルチキン、スパイスきいてるもま！🍗',
-            '松屋の牛めし、紅生姜たっぷりのせるもま！',
-            'すき家のチー牛、とろとろもま～🧀',
+            '松屋の牛めし、味噌汁がついてきて嬉しいもま！',
+            'すき家の3種のチーズ牛丼、とろとろもま～🧀',
             'ガストのチーズINハンバーグ、切るとじゅわ～もま！',
             '富士そばでサクッとおそば食べるもま？',
             '焼肉きんぐで食べ放題！おなかぽんぽんもま！',
-            '大戸屋の黒酢あんかけ、健康もまねぇ',
+            '大戸屋のしまほっけ定食、健康的もまねぇ',
             'やよい軒でおかわり無限ループもま...！🍚',
             'はなまるうどんの温玉ぶっかけ、つるつるもま～',
-            '築地銀だこのたこ焼き、外カリ中トロもまよ！🐙（揚げ焼きっていうもま）',
-            'サーティワンでトリプルアイスにしちゃうもま！？🍨',
+            '築地銀だこのたこ焼き、外カリ中トロもまよ！🐙',
+            'サーティワンのポッピングシャワー！パチパチもま！🍨',
             '一蘭で集中してラーメンたべるもま...🍜',
             '牛角で網焼きパーティもま！じゅーじゅー！🔥',
             'つるとんたんの大きな器、びっくりするもまね',
             'ミスタードーナツでポン・デ・リング10個たべるもま！🍩',
-            'すき家の高菜めんたい牛丼、ピリ辛で最高もま！',
-            '実はスタバでいっちばんおいしいのってウーロン茶もま',
-            'もまちゃんの特製オムライスもおいしいもまよ！🐣'
+            'コメダ珈琲店でシロノワール食べるもま？🐌',
+            'スターバックスで新作フラペチーノもま！🥤',
+            'もまちゃんの特製オムライス...あ、自炊も応援するもま！🐣'
         ];
 
         function selectTopic(topic, isAuto = false) {

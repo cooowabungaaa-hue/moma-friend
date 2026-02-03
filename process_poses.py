@@ -1,17 +1,26 @@
 from PIL import Image
 import os
 
-def process_images():
-    # Input path
-    input_path = r"C:/Users/小野明子/.gemini/antigravity/brain/2566ef86-2acf-44b9-981b-d7bb2a006eaa/uploaded_media_1769576486727.jpg"
-    output_dir = r"c:/Users/小野明子/Desktop/moma-friend-lp"
+import sys
+
+def process_images(input_path=None):
+    # Determine input path
+    if not input_path:
+        if len(sys.argv) > 1:
+            input_path = sys.argv[1]
+        else:
+            # Fallback or search in current dir
+            print("Usage: python process_poses.py <path_to_image>")
+            return
+
+    output_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Load image
     try:
         img = Image.open(input_path)
         img = img.convert("RGBA")
     except Exception as e:
-        print(f"Failed to load image: {e}")
+        print(f"Failed to load image at {input_path}: {e}")
         return
 
     width, height = img.size
