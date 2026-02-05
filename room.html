@@ -1011,17 +1011,20 @@
 
         function playLullaby(index) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (sleepBgmPlaying) return;
+
+            // Stop any current audio before starting new one
+            stopLullaby();
             sleepBgmPlaying = true;
 
             // Try to play external file if it exists, otherwise fallback to synth
             const audioFile = `song${index}.mp3`;
+            console.log("Attempting to play:", audioFile);
             const audio = new Audio(audioFile);
             audio.loop = true;
             window.currentSleepAudio = audio;
 
             audio.play().catch(e => {
-                console.log("Audio file not found or blocked, falling back to synth.");
+                console.log("Audio file not found or blocked, falling back to synth.", e);
                 startSynthLullaby(index);
             });
         }
