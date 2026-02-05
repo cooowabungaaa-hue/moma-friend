@@ -852,19 +852,30 @@
             setState('WALKING', smilesWhileWalking);
 
             // Define dynamic walkable area
-            const padding = 20;
             const charWidth = moma.offsetWidth;
             const charHeight = moma.offsetHeight;
             const uiPanelHeight = 120;
 
-            const minX = padding;
-            const maxX = Math.max(minX, width - charWidth - padding);
+            // Arched Room Boundaries (relative to viewport)
+            // The arch is roughly centered. 
+            // On Mobile (fit height): arch width is approx 80% of image height? No, let's use viewport percentages.
+            let minXPercent = 0.28;
+            let maxXPercent = 0.72;
+            let minYPercent = 0.58;
+            let maxYPercent = 0.82;
 
-            // Responsive floor logic: 
-            // On desktop, floor is higher up. On mobile, it covers bottom half.
-            const floorLevel = (window.innerWidth <= 768) ? 0.45 : 0.45; /* Allow moving higher on mobile */
-            const minY = height * floorLevel;
-            const maxY = Math.max(minY, height - charHeight - (uiPanelHeight * 0.8)); // Character can overlap panel slightly
+            if (window.innerWidth > 768) {
+                // PC (Zoomed 150%): Arch is larger, but we should still keep her away from edges
+                minXPercent = 0.22;
+                maxXPercent = 0.78;
+                minYPercent = 0.55;
+                maxYPercent = 0.78;
+            }
+
+            const minX = width * minXPercent;
+            const maxX = Math.max(minX, width * maxXPercent - charWidth);
+            const minY = height * minYPercent;
+            const maxY = Math.max(minY, height * maxYPercent - charHeight);
 
             const targetX = minX + Math.random() * (maxX - minX);
             const targetY = minY + Math.random() * (maxY - minY);
