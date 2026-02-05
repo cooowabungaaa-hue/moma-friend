@@ -17,8 +17,9 @@
             width: 100vw;
             height: 100vh;
             height: 100dvh;
-            background-image: url('./room-bg.png');
-            background-size: cover;
+            background-image: url('./room-bg-v2.png');
+            /* Optimized for PC: Zoom in to hide the massive side margins */
+            background-size: 150% auto;
             background-position: center bottom;
             position: relative;
             background-repeat: no-repeat;
@@ -27,7 +28,8 @@
 
         @media (max-width: 768px) {
             #room-container {
-                background-size: cover;
+                /* Optimized for Mobile: Fit height to ensure the arch is visible */
+                background-size: auto 100%;
                 background-position: center bottom;
             }
         }
