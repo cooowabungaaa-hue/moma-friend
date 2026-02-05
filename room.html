@@ -16,6 +16,7 @@
         #room-container {
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             background-image: url('./room-bg.png');
             background-size: cover;
             background-position: center bottom;
@@ -148,25 +149,26 @@
 
         @media (max-width: 640px) {
             .ui-panel {
-                bottom: 1.5rem;
-                padding: 0.5rem 1rem;
-                gap: 0.5rem;
-                border-radius: 2rem;
+                /* Use dynamic viewport safe area if available, otherwise lift it higher */
+                bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+                padding: 0.6rem 0.8rem;
+                gap: 0.4rem;
+                border-radius: 1.5rem;
                 justify-content: center;
                 flex-wrap: wrap;
-                max-width: 280px;
-                /* Force 2 rows on very small screens for better thumb access */
+                max-width: 260px;
+                background: rgba(255, 255, 255, 0.9);
             }
 
             button.action-btn {
-                width: 3rem;
-                height: 3rem;
-                font-size: 1.2rem;
+                width: 2.8rem;
+                height: 2.8rem;
+                font-size: 1.1rem;
             }
 
             .settings-btn {
-                width: 2.2rem;
-                height: 2.2rem;
+                width: 2rem;
+                height: 2rem;
             }
         }
 
