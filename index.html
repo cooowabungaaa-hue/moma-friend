@@ -349,12 +349,7 @@
                 "あなたの心音、トクトクって優しい音がするもま✨（ぎゅぅぎゅぅ）"
             ];
             const msg = randomMsg[Math.floor(Math.random() * randomMsg.length)];
-            showBubbleText(msg);
-
-            // Add a little bounce effect to Moma
-            const momaImg = document.querySelector('.organic-shape');
-            momaImg.classList.add('scale-105');
-            setTimeout(() => momaImg.classList.remove('scale-105'), 200);
+            alert(msg);
         }
 
         function inviteMoma() {
