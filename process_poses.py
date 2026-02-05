@@ -3,6 +3,12 @@ import os
 import sys
 import argparse
 
+try:
+    from rembg import remove
+    REMBG_AVAILABLE = True
+except ImportError:
+    REMBG_AVAILABLE = False
+
 def process_images(input_path, rows=2, cols=2, names=None, tolerance=30, output_dir=None):
     if not output_dir:
         output_dir = os.path.dirname(os.path.abspath(__file__))
@@ -43,17 +49,18 @@ def process_images(input_path, rows=2, cols=2, names=None, tolerance=30, output_
             cropped = img.crop(box)
             
             # Remove background
-            datas = cropped.getdata()
-            newData = []
-            
-            for item in datas:
-                # Check for white (R,G,B all high)
-                if item[0] > 255 - tolerance and item[1] > 255 - tolerance and item[2] > 255 - tolerance:
-                    newData.append((255, 255, 255, 0))
-                else:
-                    newData.append(item)
-            
-            cropped.putdata(newData)
+            if REMBG_AVAILABLE:
+                cropped = remove(cropped)
+            else:
+                datas = cropped.getdata()
+                newData = []
+                for item in datas:
+                    # Check for white (R,G,B all high)
+                    if item[0] > 255 - tolerance and item[1] > 255 - tolerance and item[2] > 255 - tolerance:
+                        newData.append((255, 255, 255, 0))
+                    else:
+                        newData.append(item)
+                cropped.putdata(newData)
             
             # Trim transparent borders
             bbox = cropped.getbbox()
@@ -79,10 +86,8 @@ def main():
     names = None
     if args.names:
         names = [s.strip() for s in args.names.split(",")]
-    elif args.rows == 2 and args.cols == 2:
-        # Legacy defaults for 2x2
-        names = ["moma-idle.png", "moma-walk.png", "moma-eat.png", "moma-sleep.png"]
-
+    
+    # Generic processing
     process_images(args.input, args.rows, args.cols, names, args.tolerance, args.outdir)
 
 if __name__ == "__main__":

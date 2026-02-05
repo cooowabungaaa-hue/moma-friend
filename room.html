@@ -431,6 +431,13 @@
             border-color: white transparent transparent;
         }
 
+        .speech-bubble.bubble-below::after {
+            bottom: auto;
+            top: -15px;
+            border-width: 0 15px 15px;
+            border-color: transparent transparent white;
+        }
+
         /* Chat Input Container */
         .chat-input-container {
             margin-top: 20px;
@@ -827,7 +834,7 @@
 
             // Responsive floor logic: 
             // On desktop, floor is higher up. On mobile, it covers bottom half.
-            const floorLevel = (window.innerWidth <= 768) ? 0.65 : 0.45;
+            const floorLevel = (window.innerWidth <= 768) ? 0.6 : 0.45;
             const minY = height * floorLevel;
             const maxY = Math.max(minY, height - charHeight - uiPanelHeight);
 
@@ -862,8 +869,8 @@
             // Clamp positions
             momaX = Math.max(0, Math.min(momaX, width - charWidth));
 
-            // Adjust floor clamp based on responsive floor level
-            const floorLevel = (window.innerWidth <= 768) ? 0.6 : 0.5;
+            // Adjust floor clamp based on responsive floor level (should match walkToRandomSpot)
+            const floorLevel = (window.innerWidth <= 768) ? 0.6 : 0.45;
             const minY = height * floorLevel;
             momaY = Math.max(minY, Math.min(momaY, height - charHeight - 20));
 
@@ -1248,8 +1255,23 @@
 
         function updateBubblePosition() {
             if (momaBubble.style.display === 'block') {
-                momaBubble.style.left = (momaX + 125 - momaBubble.offsetWidth / 2) + 'px';
-                momaBubble.style.top = (momaY - momaBubble.offsetHeight - 20) + 'px';
+                const bubbleX = (momaX + 125 - momaBubble.offsetWidth / 2);
+                const bubbleY = (momaY - momaBubble.offsetHeight - 20);
+
+                // Clamp within screen horizontal
+                const padding = 10;
+                const clampedX = Math.max(padding, Math.min(bubbleX, window.innerWidth - momaBubble.offsetWidth - padding));
+
+                // If character is too high, show bubble below instead
+                let finalY = bubbleY;
+                momaBubble.classList.remove('bubble-below');
+                if (bubbleY < 10) {
+                    finalY = momaY + moma.offsetHeight + 10;
+                    momaBubble.classList.add('bubble-below');
+                }
+
+                momaBubble.style.left = clampedX + 'px';
+                momaBubble.style.top = finalY + 'px';
             }
         }
 
