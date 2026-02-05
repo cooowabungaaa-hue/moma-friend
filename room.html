@@ -1202,7 +1202,7 @@
             'サイゼリヤのミラノ風ドリアは鉄板もま！',
             'スシローで10皿たべるもま～🍣',
             'くら寿司でびっくらポン当てるもま！🎯',
-            '今日はカレーハウスCoCo壱番屋にしちゃうもま？🍛',
+            '今日はカレーハウスCoCo壱番屋にしちゃうもま？ Curry! Curry!',
             '餃子の王将でギョーザぱくぱくするもま！🥟',
             '大阪王将のふわとろ天津飯も捨てがたいもま...',
             'モスバーガーのテリヤキ、レタスしゃきしゃきもまよ～',
@@ -1225,13 +1225,48 @@
             'ミスタードーナツでポン・デ・リング10個たべるもま！🍩',
             'コメダ珈琲店でシロノワール食べるもま？🐌',
             'スターバックスで新作フラペチーノもま！🥤',
+            'サブウェイでお野菜たっぷりのサンドイッチにするもま？🥪',
+            '星乃珈琲店のふわふわスフレパンケーキ、食べたいもま～🥞',
+            '今日は奮発して、うなぎの蒲焼にしちゃうもま？🐍',
+            'ココスで包み焼きハンバーグもま！あつあつ！',
+            '一風堂の白丸・赤丸、どっちにするもま？🍜',
+            'フレッシュネスバーガーのクラシックバーガーもま！🍔',
+            'ジョナサンのモーニングで優雅な朝もま...☕',
+            'てんやの天丼、タレがたまらないもまねぇ🍤',
+            '今日は自炊！塩むすびをむすんであげるもま🍙',
+            'ほかほかのお味噌汁と白米、一番のごちそうもま！🍚',
             'もまちゃんの特製オムライス...あ、自炊も応援するもま！🐣'
         ];
+
+        let mealHistory = [];
 
         function selectTopic(topic, isAuto = false) {
             if (isAuto && topic === 'なに食べよっか～') {
                 topicMenu.style.display = 'none';
-                const suggestion = mealSuggestions[Math.floor(Math.random() * mealSuggestions.length)];
+
+                let availableIndices = [];
+                for (let i = 0; i < mealSuggestions.length; i++) {
+                    if (!mealHistory.includes(i)) {
+                        availableIndices.push(i);
+                    }
+                }
+
+                // If history is too full, clear oldest entries
+                if (availableIndices.length < 5) {
+                    mealHistory.splice(0, mealHistory.length - 10);
+                    availableIndices = [];
+                    for (let i = 0; i < mealSuggestions.length; i++) {
+                        if (!mealHistory.includes(i)) {
+                            availableIndices.push(i);
+                        }
+                    }
+                }
+
+                const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+                mealHistory.push(randomIndex);
+                if (mealHistory.length > 15) mealHistory.shift();
+
+                const suggestion = mealSuggestions[randomIndex];
                 showBubble(suggestion);
                 return;
             }
