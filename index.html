@@ -66,6 +66,8 @@
         .organic-shape {
             border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
             transition: border-radius 1s ease-in-out;
+            background-size: cover;
+            background-position: center;
         }
 
         /* Transition Overlay */
@@ -113,15 +115,17 @@
                 <p id="speech-text">ふわぁ... おひるねの時間もま？</p>
             </div>
 
-            <!-- Image with Organic Shape masking/border -->
+            <!-- Character with Organic Mask -->
             <div class="relative z-10 p-2 cursor-pointer transition-transform duration-300 active:scale-95"
                 onclick="touchMoma()">
                 <!-- Soft Glow behind -->
                 <div
                     class="absolute inset-0 bg-white/50 blur-2xl rounded-full scale-90 group-hover:scale-110 transition duration-700">
                 </div>
-                <img src="./moma-chan-transparent.png" alt="もまちゃん"
-                    class="w-64 md:w-80 relative z-10 animate-float drop-shadow-xl hover:brightness-105 transition duration-500 organic-shape">
+                <!-- Amoeba/Organic floating shape -->
+                <div class="w-64 h-64 md:w-80 md:h-80 relative z-10 animate-float drop-shadow-xl hover:brightness-105 transition duration-500 organic-shape animate-blob"
+                    style="background-image: url('./moma-chan-transparent.png');">
+                </div>
             </div>
 
             <!-- Ground shadow -->
