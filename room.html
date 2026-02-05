@@ -544,12 +544,29 @@
             box-shadow: 0 0 15px rgba(255, 182, 193, 0.6);
             border-color: #FF69B4;
         }
+
+        /* Transition Overlay */
+        #transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+        }
     </style>
 </head>
 
 <body>
 
     <div id="room-container">
+        <!-- Transition Overlay -->
+        <div id="transition-overlay"></div>
+
         <!-- Night Overlay -->
         <div id="night-overlay"></div>
 
@@ -580,7 +597,9 @@
             <button class="action-btn" onclick="toggleWalkMode()" title="おさんぽモード">🐾</button>
             <button class="action-btn" onclick="openChat()" title="おはなし">💬</button>
             <button class="action-btn" onclick="sleepMoma()" title="夢の中へ">🌙</button>
-            <a href="index.html" class="action-btn bg-slate-100" title="もどる">🏠</a>
+            <button class="action-btn" onclick="navigateWithTransition('index.html#power')" title="できること">✨</button>
+            <button class="action-btn bg-slate-100" onclick="navigateWithTransition('index.html')"
+                title="もどる">🏠</button>
             <button class="settings-btn" title="おなまえ" onclick="openSettings()">📛</button>
         </div>
 
@@ -668,6 +687,15 @@
         // Initialize Position
         updatePosition();
         setState('IDLE', false); // Ensure initial state is set correctly with image
+
+        function navigateWithTransition(url) {
+            const overlay = document.getElementById('transition-overlay');
+            overlay.classList.remove('opacity-0');
+            overlay.classList.add('opacity-100');
+            setTimeout(() => {
+                window.location.href = url;
+            }, 600);
+        }
 
         function setState(newState, isSmiling = false) {
             state = newState;

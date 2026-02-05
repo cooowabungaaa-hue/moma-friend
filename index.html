@@ -67,10 +67,26 @@
             border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
             transition: border-radius 1s ease-in-out;
         }
+
+        /* Transition Overlay */
+        #transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+        }
     </style>
 </head>
 
 <body class="bg-moma text-slate-800">
+    <!-- Transition Overlay -->
+    <div id="transition-overlay"></div>
 
     <nav class="p-6 flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-50">
         <div class="text-2xl font-bold text-moma-brown">🧸 Moma Lab.</div>
@@ -194,13 +210,13 @@
                 ここに住んでいいもま？<br>
                 これから毎日、ふわふわしてあげるもまよ〜♪
             </p>
-            <button onclick="window.location.href='room.html'"
+            <button onclick="navigateWithTransition('room.html')"
                 class="bg-[#ff8da1] text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-pink-400 transition hover:scale-105">よろしくね！</button>
         </div>
     </div>
 
     <!-- Power Modal (What Moma Can Do) -->
-    <div id="power"
+    <div id="modal-power"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-500 flex items-center justify-center p-4">
         <div
             class="bg-white rounded-[3rem] p-8 max-w-lg w-full text-center relative transform scale-90 transition-transform duration-500 shadow-2xl border-4 border-[#eef2ff]">
@@ -244,7 +260,7 @@
             <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
                 <button onclick="closePowerModal()"
                     class="bg-slate-100 text-slate-500 px-8 py-3 rounded-full font-bold hover:bg-slate-200 transition">とじる</button>
-                <button onclick="window.location.href='room.html'"
+                <button onclick="navigateWithTransition('room.html')"
                     class="bg-[#ff8da1] text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-pink-400 transition hover:scale-105">もまのお部屋でやってみる！✨</button>
             </div>
         </div>
@@ -309,10 +325,10 @@
 
         function hugMoma() {
             const randomMsg = [
-                "ぎゅーーーーっ！！！（あったかいにおいがする...）",
-                "えへへ、あったかいもま〜💕",
-                "ずっと、こうしていたいもま...",
-                "あなたの心音、トクトクって優しい音がするもま✨"
+                "ぎゅーーーーっ！！！（あったかいにおいがする...）（ぎゅぅ）",
+                "えへへ、あったかいもま〜💕（ぎゅっぎゅっ）",
+                "ずっと、こうしていたいもま...（ぎゅ～～）",
+                "あなたの心音、トクトクって優しい音がするもま✨（ぎゅぅぎゅぅ）"
             ];
             const msg = randomMsg[Math.floor(Math.random() * randomMsg.length)];
             alert(msg);
@@ -375,7 +391,7 @@
         }
 
         function openPowerModal() {
-            const modal = document.getElementById('power');
+            const modal = document.getElementById('modal-power');
             const modalContent = modal.querySelector('div');
             modal.classList.remove('hidden');
             void modal.offsetWidth;
@@ -385,7 +401,7 @@
         }
 
         function closePowerModal() {
-            const modal = document.getElementById('power');
+            const modal = document.getElementById('modal-power');
             const modalContent = modal.querySelector('div');
             modal.classList.add('opacity-0');
             modalContent.classList.remove('scale-100');
@@ -404,12 +420,21 @@
             if (window.location.hash === '#power') {
                 openPowerModal();
             } else {
-                const powerModal = document.getElementById('power');
+                const powerModal = document.getElementById('modal-power');
                 // Only automatically close if the modal is actually visible/open
                 if (powerModal && !powerModal.classList.contains('hidden') && window.location.hash !== '#power') {
                     closePowerModal();
                 }
             }
+        }
+
+        function navigateWithTransition(url) {
+            const overlay = document.getElementById('transition-overlay');
+            overlay.classList.remove('opacity-0');
+            overlay.classList.add('opacity-100');
+            setTimeout(() => {
+                window.location.href = url;
+            }, 600);
         }
 
         window.addEventListener('load', handleHash);

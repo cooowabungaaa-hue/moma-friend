@@ -1,19 +1,11 @@
 from PIL import Image
 import os
-
 import sys
+import argparse
 
-def process_images(input_path=None):
-    # Determine input path
-    if not input_path:
-        if len(sys.argv) > 1:
-            input_path = sys.argv[1]
-        else:
-            # Fallback or search in current dir
-            print("Usage: python process_poses.py <path_to_image>")
-            return
-
-    output_dir = os.path.dirname(os.path.abspath(__file__))
+def process_images(input_path, rows=2, cols=2, names=None, tolerance=30, output_dir=None):
+    if not output_dir:
+        output_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Load image
     try:
@@ -26,63 +18,72 @@ def process_images(input_path=None):
     width, height = img.size
     print(f"Image loaded: {width}x{height}")
 
-    # Split into 4 quadrants
-    # Grid:
-    # 0 (Idle) | 1 (Walk)
-    # ---------+---------
-    # 2 (Eat)  | 3 (Sleep)
+    cell_w = width // cols
+    cell_h = height // rows
+
+    # Default names if not provided
+    if not names:
+        names = [f"pose_{i}_{j}.png" for i in range(rows) for j in range(cols)]
     
-    mid_x = width // 2
-    mid_y = height // 2
-
-    # Define crop boxes (left, upper, right, lower)
-    crops = {
-        "moma-idle.png": (0, 0, mid_x, mid_y),
-        "moma-walk.png": (mid_x, 0, width, mid_y),
-        "moma-eat.png": (0, mid_y, mid_x, height),
-        "moma-sleep.png": (mid_x, mid_y, width, height)
-    }
-
-    white_threshold = 240  # Threshold for "white" or light background
-
-    for filename, box in crops.items():
-        # Crop
-        cropped = img.crop(box)
-        
-        # Remove background
-        # Since it might be a checkerboard or white, we'll try a generous floodfill or color replacement.
-        # Simple method: Replace all pixels close to white/grey with transparent.
-        # Better method for "sticker" style: Flood fill from corners? 
-        # But corners might be occupied by the character in some views?
-        # Let's check corners of the CROP.
-        # Usually these 4-up images have whitespace between them.
-        
-        datas = cropped.getdata()
-        newData = []
-        
-        for item in datas:
-            # Check if pixel is light (accounting for potential checkerboard grey/white)
-            # Checkerboard usually alternates white (255) and light grey (~204 or ~230)
-            # Let's assume anything brighter than 200 in all channels is background for now?
-            # Or just use the top-left pixel as reference?
+    # Grid processing
+    for i in range(rows):
+        for j in range(cols):
+            idx = i * cols + j
+            if idx >= len(names):
+                break
+                
+            filename = names[idx]
+            if not filename.endswith(".png"):
+                filename += ".png"
+                
+            # Define crop box (left, upper, right, lower)
+            box = (j * cell_w, i * cell_h, (j + 1) * cell_w, (i + 1) * cell_h)
             
-            # Simple "Is it white-ish?"
-            if item[0] > 230 and item[1] > 230 and item[2] > 230:
-                 newData.append((255, 255, 255, 0))
-            else:
-                 newData.append(item)
-        
-        cropped.putdata(newData)
-        
-        # Trim transparent borders (optional but good)
-        bbox = cropped.getbbox()
-        if bbox:
-            cropped = cropped.crop(bbox)
+            # Crop
+            cropped = img.crop(box)
+            
+            # Remove background
+            datas = cropped.getdata()
+            newData = []
+            
+            for item in datas:
+                # Check for white (R,G,B all high)
+                if item[0] > 255 - tolerance and item[1] > 255 - tolerance and item[2] > 255 - tolerance:
+                    newData.append((255, 255, 255, 0))
+                else:
+                    newData.append(item)
+            
+            cropped.putdata(newData)
+            
+            # Trim transparent borders
+            bbox = cropped.getbbox()
+            if bbox:
+                cropped = cropped.crop(bbox)
 
-        # Save
-        save_path = os.path.join(output_dir, filename)
-        cropped.save(save_path, "PNG")
-        print(f"Saved {filename}")
+            # Save
+            save_path = os.path.join(output_dir, filename)
+            cropped.save(save_path, "PNG")
+            print(f"Saved {filename}")
+
+def main():
+    parser = argparse.ArgumentParser(description="Process a character sheet into individual poses.")
+    parser.add_argument("input", help="Path to the input image sheet")
+    parser.add_argument("--rows", type=int, default=2, help="Number of rows in the grid")
+    parser.add_argument("--cols", type=int, default=2, help="Number of columns in the grid")
+    parser.add_argument("--names", help="Comma-separated list of output filenames")
+    parser.add_argument("--tolerance", type=int, default=30, help="Brightness tolerance for background removal (0-255)")
+    parser.add_argument("--outdir", help="Output directory (defaults to script directory)")
+
+    args = parser.parse_args()
+
+    names = None
+    if args.names:
+        names = [s.strip() for s in args.names.split(",")]
+    elif args.rows == 2 and args.cols == 2:
+        # Legacy defaults for 2x2
+        names = ["moma-idle.png", "moma-walk.png", "moma-eat.png", "moma-sleep.png"]
+
+    process_images(args.input, args.rows, args.cols, names, args.tolerance, args.outdir)
 
 if __name__ == "__main__":
-    process_images()
+    main()
