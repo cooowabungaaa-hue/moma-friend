@@ -27,7 +27,7 @@
 
         @media (max-width: 768px) {
             #room-container {
-                background-size: auto 100vh;
+                background-size: cover;
                 background-position: center bottom;
             }
         }
@@ -135,13 +135,15 @@
             bottom: 2rem;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.82);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.4);
+            /* More transparent to show floor */
+            backdrop-filter: blur(8px);
             padding: 0.8rem 1.5rem;
             border-radius: 9999px;
             display: flex;
             gap: 1.2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            /* Subtle shadow */
             z-index: 30;
             width: max-content;
             max-width: 95vw;
@@ -150,25 +152,26 @@
         @media (max-width: 640px) {
             .ui-panel {
                 /* Use dynamic viewport safe area if available, otherwise lift it higher */
-                bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
-                padding: 0.6rem 0.8rem;
+                bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+                padding: 0.5rem 0.8rem;
                 gap: 0.4rem;
                 border-radius: 1.5rem;
                 justify-content: center;
                 flex-wrap: wrap;
                 max-width: 260px;
-                background: rgba(255, 255, 255, 0.9);
+                background: rgba(255, 255, 255, 0.4);
             }
 
             button.action-btn {
-                width: 2.8rem;
-                height: 2.8rem;
-                font-size: 1.1rem;
+                width: 2.5rem;
+                /* Slightly smaller for mobile */
+                height: 2.5rem;
+                font-size: 1rem;
             }
 
             .settings-btn {
-                width: 2rem;
-                height: 2rem;
+                width: 1.8rem;
+                height: 1.8rem;
             }
         }
 
@@ -834,9 +837,9 @@
 
             // Responsive floor logic: 
             // On desktop, floor is higher up. On mobile, it covers bottom half.
-            const floorLevel = (window.innerWidth <= 768) ? 0.6 : 0.45;
+            const floorLevel = (window.innerWidth <= 768) ? 0.45 : 0.45; /* Allow moving higher on mobile */
             const minY = height * floorLevel;
-            const maxY = Math.max(minY, height - charHeight - uiPanelHeight);
+            const maxY = Math.max(minY, height - charHeight - (uiPanelHeight * 0.8)); // Character can overlap panel slightly
 
             const targetX = minX + Math.random() * (maxX - minX);
             const targetY = minY + Math.random() * (maxY - minY);
@@ -870,9 +873,9 @@
             momaX = Math.max(0, Math.min(momaX, width - charWidth));
 
             // Adjust floor clamp based on responsive floor level (should match walkToRandomSpot)
-            const floorLevel = (window.innerWidth <= 768) ? 0.6 : 0.45;
+            const floorLevel = (window.innerWidth <= 768) ? 0.45 : 0.45;
             const minY = height * floorLevel;
-            momaY = Math.max(minY, Math.min(momaY, height - charHeight - 20));
+            momaY = Math.max(minY, Math.min(momaY, height - charHeight - 10));
 
             moma.style.left = momaX + 'px';
             moma.style.top = momaY + 'px';
