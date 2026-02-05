@@ -629,12 +629,36 @@
             </div>
         </div>
 
+        <!-- Sleep Sub Menu -->
+        <div id="sleep-menu" class="sub-menu">
+            <div class="sub-btn" onclick="selectSleepSong(1)">
+                <span>🎐</span>
+                <label>かぜ</label>
+            </div>
+            <div class="sub-btn" onclick="selectSleepSong(2)">
+                <span>🐚</span>
+                <label>なみ</label>
+            </div>
+            <div class="sub-btn" onclick="selectSleepSong(3)">
+                <span>🕯️</span>
+                <label>ともしび</label>
+            </div>
+            <div class="sub-btn" onclick="selectSleepSong(4)">
+                <span>🧸</span>
+                <label>まどろみ</label>
+            </div>
+            <div class="sub-btn" onclick="selectSleepSong(5)">
+                <span>☁️</span>
+                <label>くも</label>
+            </div>
+        </div>
+
         <!-- UI Controls (Tamagotchi Style) -->
         <div class="ui-panel">
             <button class="action-btn" onclick="toggleFoodMenu()" title="なにかたべる？">🥪</button>
             <button class="action-btn" onclick="toggleWalkMode()" title="おさんぽモード">🐾</button>
             <button class="action-btn" onclick="openChat()" title="おはなし">💬</button>
-            <button class="action-btn" onclick="sleepMoma()" title="夢の中へ">🌙</button>
+            <button class="action-btn" onclick="toggleSleepMenu()" title="夢の中へ">🌙</button>
             <button class="action-btn" onclick="navigateWithTransition('index.html#power')" title="できること">✨</button>
             <button class="action-btn bg-slate-100" onclick="navigateWithTransition('index.html')"
                 title="もどる">🏠</button>
@@ -968,12 +992,46 @@
             }
         }
 
-        function playLullaby() {
+        function toggleSleepMenu() {
+            if (state === 'SLEEPING') {
+                wakeUpMoma();
+                return;
+            }
+            const menu = document.getElementById('sleep-menu');
+            menu.classList.toggle('active');
+
+            // Close other menus
+            document.getElementById('food-menu').classList.remove('active');
+        }
+
+        function selectSleepSong(index) {
+            document.getElementById('sleep-menu').classList.remove('active');
+            sleepMoma(index);
+        }
+
+        function playLullaby(index) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (sleepBgmPlaying) return;
             sleepBgmPlaying = true;
 
-            const notes = [261.63, 329.63, 392.00, 329.63, 440.00, 392.00, 349.23, 329.63];
+            // Try to play external file if it exists, otherwise fallback to synth
+            const audioFile = `song${index}.mp3`;
+            const audio = new Audio(audioFile);
+            audio.loop = true;
+            window.currentSleepAudio = audio;
+
+            audio.play().catch(e => {
+                console.log("Audio file not found or blocked, falling back to synth.");
+                startSynthLullaby(index);
+            });
+        }
+
+        function startSynthLullaby(index) {
+            // Variation based on index
+            const baseNotes = [261.63, 329.63, 392.00, 329.63, 440.00, 392.00, 349.23, 329.63];
+            const octaveShift = (index - 1) * 0.1; // Subtle change in pitch
+            const notes = baseNotes.map(n => n * (1 + octaveShift));
+
             let step = 0;
 
             function playNote() {
@@ -981,12 +1039,12 @@
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
 
-                oscillator.type = 'sine';
+                oscillator.type = index % 2 === 0 ? 'sine' : 'triangle'; // Different timbre
                 oscillator.frequency.setValueAtTime(notes[step], audioCtx.currentTime);
 
                 gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.1);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.5);
+                gainNode.gain.linearRampToValueAtTime(0.03, audioCtx.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
 
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
@@ -995,33 +1053,42 @@
                 oscillator.stop(audioCtx.currentTime + 3);
 
                 step = (step + 1) % notes.length;
-                setTimeout(playNote, 2500);
+                setTimeout(playNote, 2500 - (index * 100)); // Slightly different speed
             }
             playNote();
         }
 
         function stopLullaby() {
             sleepBgmPlaying = false;
+            if (window.currentSleepAudio) {
+                window.currentSleepAudio.pause();
+                window.currentSleepAudio = null;
+            }
         }
 
-        function sleepMoma() {
+        function sleepMoma(songIndex = 1) {
             const overlay = document.getElementById('night-overlay');
-            if (state === 'SLEEPING') {
-                setState('IDLE');
-                moma.style.filter = "drop-shadow(0 10px 15px rgba(0,0,0,0.1))";
-                createHeart(momaX + 125, momaY - 50, "☀️");
-                overlay.style.opacity = '0';
-                stopLullaby();
-                if (isWalkingMode) startContinuousWalk();
-            } else {
-                setState('SLEEPING');
-                moma.style.filter = "brightness(0.8) sepia(0.2)";
-                createHeart(momaX + 125, momaY - 50, "💤");
-                overlay.style.opacity = '0.8';
-                createStars();
-                playLullaby();
-                if (isWalkingMode) stopContinuousWalk();
-            }
+            setState('SLEEPING');
+            moma.style.filter = "brightness(0.8) sepia(0.2)";
+            createHeart(momaX + 125, momaY - 50, "💤");
+            overlay.style.opacity = '0.8';
+            createStars();
+            playLullaby(songIndex);
+            if (isWalkingMode) stopContinuousWalk();
+
+            const songEmojis = ["🎐", "🐚", "🕯️", "🧸", "☁️"];
+            showBubble(`${songEmojis[songIndex - 1]} 夢の中へいくもま...💤`);
+        }
+
+        function wakeUpMoma() {
+            const overlay = document.getElementById('night-overlay');
+            setState('IDLE');
+            moma.style.filter = "drop-shadow(0 10px 15px rgba(0,0,0,0.1))";
+            createHeart(momaX + 125, momaY - 50, "☀️");
+            overlay.style.opacity = '0';
+            stopLullaby();
+            if (isWalkingMode) startContinuousWalk();
+            showBubble("ふあぁ... よくねたもま！☀️");
         }
 
         // --- Nickname System Logic ---
