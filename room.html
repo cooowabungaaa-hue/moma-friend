@@ -905,13 +905,26 @@
             const charWidth = moma.offsetWidth;
             const charHeight = moma.offsetHeight;
 
-            // Clamp positions
-            momaX = Math.max(0, Math.min(momaX, width - charWidth));
+            // Clamp positions using the same percentages as walk logic
+            let minXPercent = 0.28;
+            let maxXPercent = 0.72;
+            let minYPercent = 0.58;
+            let maxYPercent = 0.82;
 
-            // Adjust floor clamp based on responsive floor level (should match walkToRandomSpot)
-            const floorLevel = (window.innerWidth <= 768) ? 0.45 : 0.45;
-            const minY = height * floorLevel;
-            momaY = Math.max(minY, Math.min(momaY, height - charHeight - 10));
+            if (window.innerWidth > 768) {
+                minXPercent = 0.22;
+                maxXPercent = 0.78;
+                minYPercent = 0.55;
+                maxYPercent = 0.78;
+            }
+
+            const minX = width * minXPercent;
+            const maxX = Math.max(minX, width * maxXPercent - charWidth);
+            const minY = height * minYPercent;
+            const maxY = Math.max(minY, height * maxYPercent - charHeight);
+
+            momaX = Math.max(minX, Math.min(momaX, maxX));
+            momaY = Math.max(minY, Math.min(momaY, maxY));
 
             moma.style.left = momaX + 'px';
             moma.style.top = momaY + 'px';
