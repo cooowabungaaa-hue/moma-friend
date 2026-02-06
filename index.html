@@ -92,6 +92,36 @@
             opacity: 0;
             transition: opacity 0.6s ease-in-out;
         }
+
+        /* Small Height Optimization */
+        @media (max-height: 700px) {
+            .group.mt-4.md\:mt-10 {
+                margin-top: 0.5rem !important;
+            }
+
+            .organic-shape {
+                width: 180px !important;
+                height: 180px !important;
+            }
+
+            h1 {
+                margin-top: 1rem !important;
+                margin-bottom: 0.5rem !important;
+                font-size: 1.25rem !important;
+                line-height: normal !important;
+            }
+
+            p.max-w-xl {
+                margin-bottom: 1rem !important;
+                font-size: 0.75rem !important;
+                line-height: 1.4 !important;
+            }
+
+            #speech-bubble {
+                top: -3.5rem !important;
+                scale: 0.8 !important;
+            }
+        }
     </style>
 </head>
 

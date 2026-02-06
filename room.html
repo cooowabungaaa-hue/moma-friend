@@ -18,18 +18,17 @@
             height: 100vh;
             height: 100dvh;
             background-image: url('./room-bg-v2.png');
-            /* Optimized for PC: Zoom in to hide the massive side margins */
-            background-size: 150% auto;
+            background-size: cover;
             background-position: center bottom;
             position: relative;
             background-repeat: no-repeat;
             background-color: #fdf6ec;
         }
 
+        /* No need for separate mobile sizing with the new dynamic calculation */
         @media (max-width: 768px) {
             #room-container {
-                /* Optimized for Mobile: Fit height to ensure the arch is visible */
-                background-size: auto 100%;
+                background-size: cover;
                 background-position: center bottom;
             }
         }
@@ -62,7 +61,7 @@
 
         @media (max-width: 768px) {
             #moma-character {
-                width: 180px;
+                width: 160px;
             }
         }
 
@@ -154,26 +153,26 @@
         @media (max-width: 640px) {
             .ui-panel {
                 /* Use dynamic viewport safe area if available, otherwise lift it higher */
-                bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-                padding: 0.5rem 0.8rem;
-                gap: 0.4rem;
-                border-radius: 1.5rem;
+                bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+                padding: 0.4rem 0.5rem;
+                gap: 0.3rem;
+                border-radius: 1.2rem;
                 justify-content: center;
-                flex-wrap: wrap;
-                max-width: 260px;
-                background: rgba(255, 255, 255, 0.4);
+                flex-wrap: nowrap !important;
+                width: auto;
+                max-width: 98vw;
+                background: rgba(255, 255, 255, 0.8);
             }
 
             button.action-btn {
-                width: 2.5rem;
-                /* Slightly smaller for mobile */
-                height: 2.5rem;
-                font-size: 1rem;
+                width: 2.2rem;
+                height: 2.2rem;
+                font-size: 0.9rem;
             }
 
             .settings-btn {
-                width: 1.8rem;
-                height: 1.8rem;
+                width: 1.6rem;
+                height: 1.6rem;
             }
         }
 
@@ -317,14 +316,18 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 240, 245, 0.9);
+            height: 100dvh;
+            background: rgba(255, 240, 245, 0.95);
             display: none;
             /* Hidden by default */
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 100;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
         }
 
         .topic-container {
@@ -365,6 +368,23 @@
             transform: scale(1.1);
             background: #FFE4E1;
             border-color: #FFB6C1;
+        }
+
+        @media (max-width: 640px) {
+            .topic-container {
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .amoeba-btn {
+                padding: 12px 18px;
+                font-size: 0.9rem;
+                border-width: 2px;
+            }
+
+            #moma-look-up {
+                width: 120px;
+            }
         }
 
         @keyframes morph {
@@ -450,12 +470,20 @@
             /* Hidden until topic selected */
             gap: 10px;
             background: white;
-            padding: 10px 20px;
+            padding: 8px 12px;
             border-radius: 999px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 500px;
+            width: min(95vw, 500px);
             align-items: center;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 640px) {
+            .chat-input-container {
+                padding: 6px 8px;
+                gap: 6px;
+                width: 98vw;
+            }
         }
 
         .back-btn {
@@ -479,15 +507,33 @@
             background: #FFB6C1;
             color: white;
             border: none;
-            padding: 5px 15px;
-            border-radius: 999px;
+            width: 54px;
+            height: 54px;
+            min-width: 54px;
+            border-radius: 50%;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 640px) {
+            .send-btn {
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+                font-size: 0.75rem;
+            }
         }
 
         .send-btn:hover {
             background: #FF69B4;
+            transform: scale(1.05);
         }
 
         /* Night Sky Effect */
@@ -851,31 +897,24 @@
             const smilesWhileWalking = Math.random() < 0.4;
             setState('WALKING', smilesWhileWalking);
 
-            // Define dynamic walkable area
+            // Dynamic boundaries based on actual background image scaling
+            const bounds = getRoomBounds();
+
+            // Arch floor unit coordinates (relative to image 1024x682)
+            // Left margin is large, room is centered. 
+            const unitMinX = 0.28;
+            const unitMaxX = 0.72;
+            const unitMinY = 0.60;
+            const unitMaxY = 0.78;
+
             const charWidth = moma.offsetWidth;
             const charHeight = moma.offsetHeight;
-            const uiPanelHeight = 120;
 
-            // Arched Room Boundaries (relative to viewport)
-            // The arch is roughly centered. 
-            // On Mobile (fit height): arch width is approx 80% of image height? No, let's use viewport percentages.
-            let minXPercent = 0.28;
-            let maxXPercent = 0.72;
-            let minYPercent = 0.58;
-            let maxYPercent = 0.82;
-
-            if (window.innerWidth > 768) {
-                // PC (Zoomed 150%): Arch is larger, but we should still keep her away from edges
-                minXPercent = 0.22;
-                maxXPercent = 0.78;
-                minYPercent = 0.55;
-                maxYPercent = 0.78;
-            }
-
-            const minX = width * minXPercent;
-            const maxX = Math.max(minX, width * maxXPercent - charWidth);
-            const minY = height * minYPercent;
-            const maxY = Math.max(minY, height * maxYPercent - charHeight);
+            // Map image unit coordinates to viewport pixels
+            const minX = bounds.left + (bounds.width * unitMinX);
+            const maxX = bounds.left + (bounds.width * unitMaxX) - charWidth;
+            const minY = bounds.top + (bounds.height * unitMinY);
+            const maxY = bounds.top + (bounds.height * unitMaxY) - charHeight;
 
             const targetX = minX + Math.random() * (maxX - minX);
             const targetY = minY + Math.random() * (maxY - minY);
@@ -909,13 +948,13 @@
             let minXPercent = 0.28;
             let maxXPercent = 0.72;
             let minYPercent = 0.58;
-            let maxYPercent = 0.82;
+            let maxYPercent = 0.60; // Raised further to avoid overlapping UI panel on small screens
 
             if (window.innerWidth > 768) {
                 minXPercent = 0.22;
                 maxXPercent = 0.78;
                 minYPercent = 0.55;
-                maxYPercent = 0.78;
+                maxYPercent = 0.74;
             }
 
             const minX = width * minXPercent;
