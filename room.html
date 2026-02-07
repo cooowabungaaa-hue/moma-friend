@@ -1497,13 +1497,19 @@
 
             // Occasionally add name to bubble if registered
             let displayText = text;
-            if (userNickname && Math.random() < 0.3 && !text.includes(userNickname) && text.length < 20 && text !== '...') {
-                const patterns = [
-                    `${userNickname}、${text}`,
-                    `${text}、${userNickname}！`,
-                    `${userNickname}！${text}`
-                ];
-                displayText = patterns[Math.floor(Math.random() * patterns.length)];
+            if (userNickname) {
+                // Replace 'あなた' with nickname
+                displayText = text.replace(/あなた/g, userNickname);
+
+                // Add name to short or specific texts
+                if (Math.random() < 0.3 && !displayText.includes(userNickname) && displayText.length < 20 && displayText !== '...') {
+                    const patterns = [
+                        `${userNickname}、${displayText}`,
+                        `${displayText}、${userNickname}！`,
+                        `${userNickname}！${displayText}`
+                    ];
+                    displayText = patterns[Math.floor(Math.random() * patterns.length)];
+                }
             }
 
             momaBubble.innerText = displayText;

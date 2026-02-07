@@ -388,7 +388,14 @@
             const bubble = document.getElementById('speech-bubble');
             const text = document.getElementById('speech-text');
 
-            text.innerText = content;
+            // Replace 'あなた' with nickname if set
+            const userNickname = localStorage.getItem('moma_user_nickname') || '';
+            let displayText = content;
+            if (userNickname) {
+                displayText = content.replace(/あなた/g, userNickname);
+            }
+
+            text.innerText = displayText;
 
             // Show bubble animation
             bubble.classList.remove('opacity-0', 'translate-y-4');
