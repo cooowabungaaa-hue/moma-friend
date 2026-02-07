@@ -727,6 +727,7 @@
                 <button class="amoeba-btn" onclick="selectTopic('ないしょ話')">ないしょ話🤫</button>
                 <button class="amoeba-btn" onclick="selectTopic('おなかへった')">おなかへった🍚</button>
                 <button class="amoeba-btn" onclick="selectTopic('なに食べよっか～', true)">なに食べよっか～🍴</button>
+                <button class="amoeba-btn" onclick="selectTopic('こわいはなしして', true)">こわいはなしして👻</button>
             </div>
 
             <div class="chat-input-container" id="menu-input" onclick="event.stopPropagation()">
@@ -1303,6 +1304,17 @@
             'もまちゃんの特製オムライス...あ、自炊も応援するもま！🐣'
         ];
 
+        const scaryStories = [
+            '夜中に目が覚めたら、おやつのプリンが全部なくなってたもま...！犯人は...もまちゃんだったもま👻（食べたの忘れてただけもま）',
+            '部屋の隅に黒い影が...! と思ったら、あなたの脱ぎっぱなしの靴下だったもま。びっくりして、ぎゅーしちゃったもまよ✨',
+            'ある日、もまちゃんが呼んでも返事がないもま...。もしかして消えちゃった！？と思ったら、もまちゃんがお昼寝してただけだったもま💤 びっくりしたもま〜',
+            '夜にお散歩してたら「うらめしや〜」って聞こえたもま！でもよく聞いたら「うらめしゅや〜、おなかが空いたもま...」ってお腹の音だったもま🍙',
+            '鏡を見たら、そこには自分そっくりの姿が...！って、それはただの鏡もまね。もまちゃん、今日も最高に可愛かったもま〜💕',
+            '暗い廊下から「カサカサ...」って音が！勇気を出して見に行ったら、丸まったレシートが風に吹かれてただけだったもま。紙くずも元気もまねぇ✨',
+            'さっきまであったはずのチョコレートが、忽然と消えたもま...。これは、お菓子泥棒の仕業もま！あ、もまちゃんの口の周りにチョコがついてる...？🍫',
+            '夜、誰もいないはずのリビングから笑い声が...。恐る恐る覗いたら、テレビのタイマーがついてお笑い番組が流れてただけだったもま。びっくりしたけど面白かったもま！📺'
+        ];
+
         let mealHistory = [];
 
         function selectTopic(topic, isAuto = false) {
@@ -1333,6 +1345,14 @@
 
                 const suggestion = mealSuggestions[randomIndex];
                 showBubble(suggestion);
+                return;
+            }
+
+            if (isAuto && topic === 'こわいはなしして') {
+                topicMenu.style.display = 'none';
+                const randomIndex = Math.floor(Math.random() * scaryStories.length);
+                const story = scaryStories[randomIndex];
+                showBubble(story);
                 return;
             }
             currentTopic = topic;
