@@ -312,7 +312,9 @@
 
     <!-- Interactive Script -->
     <script>
-        const momaWords = [
+        const MOMA_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSzI3aafv2e1g9Zqpx3FntaYVSua-LulJIPolrEz_QwfS8w8TjmDp2PNfuU-oqX71yGhYzIqGpQcbV8/pub?gid=0&single=true&output=csv";
+
+        let momaWords = [
             "夜はもまが、ずっとそばにいてあげるから安心するもまよ。",
             "横になって深呼吸するだけで、体はえらいえらいもま！",
             "今日のことは忘れて、ふわふわの世界へ逃避行もま〜",
@@ -332,6 +334,31 @@
             "生まれてきてくれてありがとうもま。",
             "世界で一番、あなたが大切だもま。"
         ];
+
+        async function loadMomaData() {
+            if (!MOMA_SHEET_URL) return;
+            try {
+                const response = await fetch(MOMA_SHEET_URL);
+                const csvText = await response.text();
+                const rows = csvText.split('\n').map(row => row.split(','));
+
+                // Expecting Columns: Type, Topic, Text (assuming 0, 1, 2)
+                const newWords = [];
+                for (let i = 1; i < rows.length; i++) {
+                    const [type, topic, text] = rows[i].map(cell => cell?.trim().replace(/^"|"$/g, ''));
+                    if (type === 'quote' && text) {
+                        newWords.push(text);
+                    }
+                }
+
+                if (newWords.length > 0) {
+                    momaWords = newWords;
+                    console.log("Moma speech data loaded from Sheet.");
+                }
+            } catch (e) {
+                console.error("Failed to load Moma data from Sheet, using fallbacks.", e);
+            }
+        }
 
         function showBubbleText(content) {
             const bubble = document.getElementById('speech-bubble');
@@ -485,7 +512,10 @@
             }, 600);
         }
 
-        window.addEventListener('load', handleHash);
+        window.addEventListener('load', () => {
+            handleHash();
+            loadMomaData();
+        });
         window.addEventListener('hashchange', handleHash);
     </script>
 </body>

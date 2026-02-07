@@ -784,6 +784,8 @@
     </div>
 
     <script>
+        const MOMA_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSzI3aafv2e1g9Zqpx3FntaYVSua-LulJIPolrEz_QwfS8w8TjmDp2PNfuU-oqX71yGhYzIqGpQcbV8/pub?gid=0&single=true&output=csv";
+
         const moma = document.getElementById('moma-character');
         const momaImg = document.getElementById('moma-img');
         const container = document.getElementById('room-container');
@@ -797,6 +799,44 @@
         // Initialize Position
         updatePosition();
         setState('IDLE', false); // Ensure initial state is set correctly with image
+
+        async function loadMomaData() {
+            if (!MOMA_SHEET_URL) return;
+            try {
+                const response = await fetch(MOMA_SHEET_URL);
+                const csvText = await response.text();
+                const rows = csvText.split('\n').map(row => row.split(','));
+
+                const newMeals = [];
+                const newStories = [];
+                const newContexts = {};
+
+                for (let i = 1; i < rows.length; i++) {
+                    const [type, topic, text] = rows[i].map(cell => cell?.trim().replace(/^"|"$/g, ''));
+                    if (!text) continue;
+
+                    if (type === 'meal') {
+                        newMeals.push(text);
+                    } else if (type === 'scary') {
+                        newStories.push(text);
+                    } else if (type === 'chat' && topic) {
+                        if (!newContexts[topic]) newContexts[topic] = [];
+                        newContexts[topic].push(text);
+                    }
+                }
+
+                if (newMeals.length > 0) mealSuggestions.splice(0, mealSuggestions.length, ...newMeals);
+                if (newStories.length > 0) scaryStories.splice(0, scaryStories.length, ...newStories);
+                if (Object.keys(newContexts).length > 0) {
+                    for (let key in newContexts) {
+                        topicContexts[key] = newContexts[key];
+                    }
+                }
+                console.log("Moma room data loaded from Sheet.");
+            } catch (e) {
+                console.error("Failed to load Moma data from Sheet, using fallbacks.", e);
+            }
+        }
 
         function navigateWithTransition(url) {
             const overlay = document.getElementById('transition-overlay');
@@ -1485,6 +1525,12 @@
         }
 
         // Handle Window Resize
+        window.addEventListener('load', () => {
+            width = container.offsetWidth;
+            height = container.offsetHeight;
+            updatePosition();
+            loadMomaData();
+        });
         window.addEventListener('resize', () => {
             width = container.offsetWidth;
             height = container.offsetHeight;
