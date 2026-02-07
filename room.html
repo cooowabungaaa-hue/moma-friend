@@ -473,16 +473,16 @@
             padding: 8px 12px;
             border-radius: 999px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            width: min(95vw, 500px);
+            width: 100%;
+            max-width: 500px;
             align-items: center;
             box-sizing: border-box;
         }
 
         @media (max-width: 640px) {
             .chat-input-container {
-                padding: 6px 8px;
-                gap: 6px;
-                width: 98vw;
+                padding: 6px 10px;
+                gap: 8px;
             }
         }
 
@@ -501,6 +501,8 @@
             flex-grow: 1;
             font-size: 1rem;
             color: #333;
+            min-width: 0;
+            background: transparent;
         }
 
         .send-btn {
