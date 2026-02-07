@@ -805,14 +805,38 @@
             try {
                 const response = await fetch(MOMA_SHEET_URL);
                 const csvText = await response.text();
-                const rows = csvText.split('\n').map(row => row.split(','));
+                const rows = [];
+                const lines = csvText.split(/\r?\n/);
+                for (let line of lines) {
+                    if (!line.trim()) continue;
+                    const row = [];
+                    let cur = '';
+                    let inQuotes = false;
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+                        if (char === '"') {
+                            if (inQuotes && line[i + 1] === '"') {
+                                cur += '"'; i++;
+                            } else {
+                                inQuotes = !inQuotes;
+                            }
+                        } else if (char === ',' && !inQuotes) {
+                            row.push(cur.trim());
+                            cur = '';
+                        } else {
+                            cur += char;
+                        }
+                    }
+                    row.push(cur.trim());
+                    rows.push(row);
+                }
 
                 const newMeals = [];
                 const newStories = [];
                 const newContexts = {};
 
                 for (let i = 1; i < rows.length; i++) {
-                    const [type, topic, text] = rows[i].map(cell => cell?.trim().replace(/^"|"$/g, ''));
+                    const [type, topic, text] = rows[i];
                     if (!text) continue;
 
                     if (type === 'meal') {
