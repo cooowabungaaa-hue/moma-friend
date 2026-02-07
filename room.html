@@ -1512,11 +1512,12 @@
             // Position bubble above Moma
             updateBubblePosition();
 
-            // Hide after a while
+            // Hide after a while (dynamic duration based on text length)
+            const duration = Math.max(5000, 3000 + displayText.length * 100);
             bubbleTimer = setTimeout(() => {
                 momaBubble.style.display = 'none';
                 bubbleTimer = null;
-            }, 5000);
+            }, duration);
         }
 
         function updateBubblePosition() {
