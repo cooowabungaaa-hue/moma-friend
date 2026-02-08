@@ -441,7 +441,7 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             z-index: 50;
             display: none;
-            max-width: 250px;
+            max-width: 320px;
             text-align: center;
         }
 
@@ -1524,8 +1524,8 @@
 
             if (matches.length > 0) {
                 const intro = "もまちゃんの夢占い結果もま！✨\n";
-                // If many matches, just pick some or join. To stay in bubble, join first 2 max.
-                const result = matches.slice(0, 2).join('\n');
+                // If many matches, just pick some or join. Increased to 5.
+                const result = matches.slice(0, 5).join('\n');
                 return intro + result;
             } else {
                 return "ふむふむ...不思議な夢もまねぇ。それはあなたの心が新しい世界を求めているサインかもま！✨";
