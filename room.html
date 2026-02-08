@@ -967,6 +967,15 @@
             setState('IDLE');
         }
 
+        function getRoomBounds() {
+            return {
+                left: 0,
+                top: 0,
+                width: width,
+                height: height
+            };
+        }
+
         function walkToRandomSpot() {
             if (state === 'EATING') return;
 
@@ -1018,6 +1027,7 @@
         }
 
         function updatePosition() {
+            const bounds = getRoomBounds();
             const charWidth = moma.offsetWidth;
             const charHeight = moma.offsetHeight;
 
@@ -1025,7 +1035,7 @@
             let minXPercent = 0.28;
             let maxXPercent = 0.72;
             let minYPercent = 0.58;
-            let maxYPercent = 0.60; // Raised further to avoid overlapping UI panel on small screens
+            let maxYPercent = 0.60;
 
             if (window.innerWidth > 768) {
                 minXPercent = 0.22;
@@ -1034,10 +1044,10 @@
                 maxYPercent = 0.74;
             }
 
-            const minX = width * minXPercent;
-            const maxX = Math.max(minX, width * maxXPercent - charWidth);
-            const minY = height * minYPercent;
-            const maxY = Math.max(minY, height * maxYPercent - charHeight);
+            const minX = bounds.left + bounds.width * minXPercent;
+            const maxX = Math.max(minX, bounds.left + bounds.width * maxXPercent - charWidth);
+            const minY = bounds.top + bounds.height * minYPercent;
+            const maxY = Math.max(minY, bounds.top + bounds.height * maxYPercent - charHeight);
 
             momaX = Math.max(minX, Math.min(momaX, maxX));
             momaY = Math.max(minY, Math.min(momaY, maxY));
