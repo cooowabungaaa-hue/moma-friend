@@ -730,7 +730,7 @@
                 <button class="amoeba-btn" onclick="selectTopic('おなかへった')">おなかへった🍚</button>
                 <button class="amoeba-btn" onclick="selectTopic('なに食べよっか～', true)">なに食べよっか～🍴</button>
                 <button class="amoeba-btn" onclick="selectTopic('こわいはなしして', true)">こわいはなしして👻</button>
-                <button class="amoeba-btn" onclick="selectTopic('夢分析して🌙', true)">夢分析して🌙</button>
+                <button class="amoeba-btn" onclick="selectTopic('夢占いして🌙', true)">夢占いして🌙</button>
             </div>
 
             <div class="chat-input-container" id="menu-input" onclick="event.stopPropagation()">
@@ -1445,7 +1445,7 @@
                 return;
             }
 
-            if (isAuto && topic === '夢分析して🌙') {
+            if (isAuto && topic === '夢占いして🌙') {
                 currentTopic = topic;
                 menuTopics.style.display = 'none';
                 menuInput.style.display = 'flex';
@@ -1499,7 +1499,7 @@
                     "もまといっしょに、のんびりしよ？✨"
                 ];
 
-                if (currentTopic === '夢分析して🌙') {
+                if (currentTopic === '夢占いして🌙') {
                     showBubble(analyzeDream(text));
                 } else {
                     const contextOptions = topicContexts[currentTopic] || affirmativeBase;
@@ -1523,7 +1523,7 @@
             }
 
             if (matches.length > 0) {
-                const intro = "もまちゃんの夢分析結果もま！✨\n";
+                const intro = "もまちゃんの夢占い結果もま！✨\n";
                 // If many matches, just pick some or join. To stay in bubble, join first 2 max.
                 const result = matches.slice(0, 2).join('\n');
                 return intro + result;
