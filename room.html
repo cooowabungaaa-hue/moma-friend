@@ -730,6 +730,7 @@
                 <button class="amoeba-btn" onclick="selectTopic('おなかへった')">おなかへった🍚</button>
                 <button class="amoeba-btn" onclick="selectTopic('なに食べよっか～', true)">なに食べよっか～🍴</button>
                 <button class="amoeba-btn" onclick="selectTopic('こわいはなしして', true)">こわいはなしして👻</button>
+                <button class="amoeba-btn" onclick="selectTopic('夢分析して🌙', true)">夢分析して🌙</button>
             </div>
 
             <div class="chat-input-container" id="menu-input" onclick="event.stopPropagation()">
@@ -836,6 +837,7 @@
                 const newMeals = [];
                 const newStories = [];
                 const newContexts = {};
+                const newDreamDictionary = {};
 
                 for (let i = 1; i < rows.length; i++) {
                     const [type, topic, text, weightStr] = rows[i];
@@ -848,6 +850,8 @@
                         newMeals.push(item);
                     } else if (type === 'scary') {
                         newStories.push(item);
+                    } else if (type === 'dream_symbol' && topic) {
+                        newDreamDictionary[topic] = text;
                     } else if (type === 'chat' && topic) {
                         if (!newContexts[topic]) newContexts[topic] = [];
                         newContexts[topic].push(text);
@@ -860,6 +864,9 @@
                     for (let key in newContexts) {
                         topicContexts[key] = newContexts[key];
                     }
+                }
+                if (Object.keys(newDreamDictionary).length > 0) {
+                    Object.assign(dreamDictionary, newDreamDictionary);
                 }
                 console.log("Moma room data loaded from Sheet with weights.");
             } catch (e) {
@@ -1387,6 +1394,14 @@
         let mealHistory = [];
         let scaryHistory = [];
 
+        const dreamDictionary = {
+            '蛇': '金運や再生の象徴もま。良い変化が起きる前触れかもま！🐍',
+            '空': '自由への憧れや、可能性が広がっているサインもま。高く飛ぶほど絶好調もま！☁️',
+            '逃げる': '何かからプレッシャーを感じているのかもま。たまにはもまちゃんと休むもまよ。🏃',
+            '落ちる': '不安や自信のなさを表しているもま。もまちゃんが下で受け止めるから大丈夫もま！🧸',
+            '猫': '直感力が高まっているか、誰かに甘えたい気持ちの表れもま。もまも猫ちゃんと遊びたいもま！🐾'
+        };
+
         function getWeightedRandom(items, history) {
             // 1. Filter items based on history (exclude if in history)
             let candidates = items.map((item, index) => ({ item, index }))
@@ -1427,6 +1442,16 @@
                 topicMenu.style.display = 'none';
                 const story = getWeightedRandom(scaryStories, scaryHistory);
                 showBubble(story);
+                return;
+            }
+
+            if (isAuto && topic === '夢分析して🌙') {
+                currentTopic = topic;
+                menuTopics.style.display = 'none';
+                menuInput.style.display = 'flex';
+                menuInstruction.innerText = "どんな夢を見たかもま？キーワードを教えてね✨";
+                userInput.placeholder = "例：蛇が出てきた、空を飛んだ...など";
+                userInput.focus();
                 return;
             }
             currentTopic = topic;
@@ -1474,15 +1499,37 @@
                     "もまといっしょに、のんびりしよ？✨"
                 ];
 
-                const contextOptions = topicContexts[currentTopic] || affirmativeBase;
-                const response = contextOptions[Math.floor(Math.random() * contextOptions.length)];
-                showBubble(response);
+                if (currentTopic === '夢分析して🌙') {
+                    showBubble(analyzeDream(text));
+                } else {
+                    const contextOptions = topicContexts[currentTopic] || affirmativeBase;
+                    const response = contextOptions[Math.floor(Math.random() * contextOptions.length)];
+                    showBubble(response);
+                }
 
                 if (Math.random() < 0.4) {
                     moma.classList.add('animate-bounce');
                     setTimeout(() => moma.classList.remove('animate-bounce'), 1000);
                 }
             }, 800);
+        }
+
+        function analyzeDream(input) {
+            let matches = [];
+            for (let symbol in dreamDictionary) {
+                if (input.includes(symbol)) {
+                    matches.push(dreamDictionary[symbol]);
+                }
+            }
+
+            if (matches.length > 0) {
+                const intro = "もまちゃんの夢分析結果もま！✨\n";
+                // If many matches, just pick some or join. To stay in bubble, join first 2 max.
+                const result = matches.slice(0, 2).join('\n');
+                return intro + result;
+            } else {
+                return "ふむふむ...不思議な夢もまねぇ。それはあなたの心が新しい世界を求めているサインかもま！✨";
+            }
         }
 
         function handleKeyPress(e) {
