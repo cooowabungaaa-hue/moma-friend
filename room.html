@@ -791,6 +791,15 @@
                 <div id="current-name-display" class="mb-4 text-gray-600"></div>
                 <button id="reset-name-btn" class="modal-btn btn-reset" onclick="resetNickname()"
                     style="display:none;">おなまえの登録をけす</button>
+
+                <!-- Name Registration (If not set) -->
+                <div id="settings-name-input-container" class="mt-4" style="display:none;">
+                    <p class="text-xs text-gray-400 mb-2">おなまえをおしえてね！(ひらがな)</p>
+                    <input type="text" id="settings-name-input" class="modal-input" placeholder="なまえ" maxlength="10">
+                    <button class="modal-btn btn-confirm" style="margin-top:5px;"
+                        onclick="requestNicknameFromSettings()">決定</button>
+                </div>
+
                 <div class="mt-4">
                     <label
                         style="color: #FFB6C1; font-weight: bold; display: block; margin-bottom: 5px;">お誕生日（任意）</label>
@@ -1294,20 +1303,42 @@
             const settingsModal = document.getElementById('settings-modal');
             const nameDisplay = document.getElementById('current-name-display');
             const resetBtn = document.getElementById('reset-name-btn');
+            const nameInputContainer = document.getElementById('settings-name-input-container');
 
             if (userNickname) {
                 nameDisplay.innerText = `いまのおなまえ：${userNickname}`;
                 resetBtn.style.display = 'inline-block';
+                nameInputContainer.style.display = 'none';
             } else {
                 nameDisplay.innerText = 'おなまえが登録されていません';
                 resetBtn.style.display = 'none';
-                // Automatically open name input if not registered
-                setTimeout(() => {
-                    closeModal('settings-modal');
-                    openModal('name-modal');
-                }, 800);
+                nameInputContainer.style.display = 'block';
             }
             openModal('settings-modal');
+        }
+
+        function requestNicknameFromSettings() {
+            const input = document.getElementById('settings-name-input');
+            const baseName = input.value.trim();
+
+            if (!baseName) {
+                alert('おなまえをいれてね！');
+                return;
+            }
+
+            if (!/^[ぁ-んー]+$/.test(baseName)) {
+                alert('ひらがなでいれてね✨');
+                return;
+            }
+
+            const suffixes = ['りん', 'っち', 'もま', 'ぴ', 'ちゃん', 'たん', 'にゃん', 'ぽよ'];
+            currentSuggestion = baseName + suffixes[Math.floor(Math.random() * suffixes.length)];
+
+            document.getElementById('suggestion-text').innerText = `「${currentSuggestion}」はどうもま？`;
+
+            // Close settings and open suggestion
+            _internalCloseModal('settings-modal');
+            openModal('suggestion-modal');
         }
 
         // --- History & UI State Management ---
