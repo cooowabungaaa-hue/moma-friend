@@ -967,13 +967,32 @@
             setState('IDLE');
         }
 
-        function getRoomBounds() {
-            return {
-                left: 0,
-                top: 0,
-                width: width,
-                height: height
-            };
+        function getMomaSafeBounds() {
+            // Returns the safe pixel coordinates for Moma's top-left corner
+            // accounts for character size and room layout
+            const charWidth = moma.offsetWidth;
+            const charHeight = moma.offsetHeight;
+
+            // Standard Bounds (Desktop/Tablet)
+            let minXPercent = 0.28;
+            let maxXPercent = 0.72;
+            let minYPercent = 0.58;
+            let maxYPercent = 0.78;
+
+            // Mobile Enhancements (Wider range to avoid feeling cramped)
+            if (window.innerWidth <= 768) {
+                minXPercent = 0.10; // Allow moving more to the left
+                maxXPercent = 0.90; // Allow moving more to the right
+                minYPercent = 0.50; // Use more vertical space
+                maxYPercent = 0.80;
+            }
+
+            const minX = width * minXPercent;
+            const maxX = Math.max(minX, width * maxXPercent - charWidth);
+            const minY = height * minYPercent;
+            const maxY = Math.max(minY, height * maxYPercent - charHeight);
+
+            return { minX, maxX, minY, maxY };
         }
 
         function walkToRandomSpot() {
@@ -984,23 +1003,11 @@
             setState('WALKING', smilesWhileWalking);
 
             // Dynamic boundaries based on actual background image scaling
-            const bounds = getRoomBounds();
-
-            // Arch floor unit coordinates (relative to image 1024x682)
-            // Left margin is large, room is centered. 
-            const unitMinX = 0.28;
-            const unitMaxX = 0.72;
-            const unitMinY = 0.60;
-            const unitMaxY = 0.78;
-
-            const charWidth = moma.offsetWidth;
-            const charHeight = moma.offsetHeight;
-
-            // Map image unit coordinates to viewport pixels
-            const minX = bounds.left + (bounds.width * unitMinX);
-            const maxX = bounds.left + (bounds.width * unitMaxX) - charWidth;
-            const minY = bounds.top + (bounds.height * unitMinY);
-            const maxY = bounds.top + (bounds.height * unitMaxY) - charHeight;
+            const bounds = getMomaSafeBounds();
+            const minX = bounds.minX;
+            const maxX = bounds.maxX;
+            const minY = bounds.minY;
+            const maxY = bounds.maxY;
 
             const targetX = minX + Math.random() * (maxX - minX);
             const targetY = minY + Math.random() * (maxY - minY);
@@ -1027,30 +1034,11 @@
         }
 
         function updatePosition() {
-            const bounds = getRoomBounds();
-            const charWidth = moma.offsetWidth;
-            const charHeight = moma.offsetHeight;
+            const bounds = getMomaSafeBounds();
 
-            // Clamp positions using the same percentages as walk logic
-            let minXPercent = 0.28;
-            let maxXPercent = 0.72;
-            let minYPercent = 0.58;
-            let maxYPercent = 0.60;
-
-            if (window.innerWidth > 768) {
-                minXPercent = 0.22;
-                maxXPercent = 0.78;
-                minYPercent = 0.55;
-                maxYPercent = 0.74;
-            }
-
-            const minX = bounds.left + bounds.width * minXPercent;
-            const maxX = Math.max(minX, bounds.left + bounds.width * maxXPercent - charWidth);
-            const minY = bounds.top + bounds.height * minYPercent;
-            const maxY = Math.max(minY, bounds.top + bounds.height * maxYPercent - charHeight);
-
-            momaX = Math.max(minX, Math.min(momaX, maxX));
-            momaY = Math.max(minY, Math.min(momaY, maxY));
+            // Clamp to safe bounds
+            momaX = Math.max(bounds.minX, Math.min(momaX, bounds.maxX));
+            momaY = Math.max(bounds.minY, Math.min(momaY, bounds.maxY));
 
             moma.style.left = momaX + 'px';
             moma.style.top = momaY + 'px';
