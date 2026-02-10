@@ -1539,8 +1539,45 @@
             return { name: "うお座", element: "Water" };
         }
 
-        const luckyColors = ["レッド", "ブルー", "グリーン", "イエロー", "オレンジ", "ピンク", "パープル", "ホワイト", "ブラック", "シルバー", "ゴールド", "ネイビー"];
-        const luckyItems = ["ハンカチ", "手帳", "腕時計", "アロマ", "マグカップ", "観葉植物", "スニーカー", "本", "鏡", "帽子", "アクセサリー", "お菓子"];
+        const luckyColors = {
+            0: ["ゴールド", "オレンジ", "ホワイト"], // Sun (Sunday)
+            1: ["シルバー", "ホワイト", "パール"], // Moon (Monday)
+            2: ["レッド", "スカーレット", "マゼンタ"], // Mars (Tuesday)
+            3: ["イエロー", "ライトブルー", "ネイビー"], // Mercury (Wednesday)
+            4: ["パープル", "グリーン", "ロイヤルブルー"], // Jupiter (Thursday)
+            5: ["ピンク", "パステルグリーン", "クリーム"], // Venus (Friday)
+            6: ["ブラック", "ブラウン", "グレー"] // Saturn (Saturday)
+        };
+
+        const luckyItems = {
+            "Fire": ["スニーカー", "サングラス", "キャンドル", "赤い小物", "スポーツウェア"],
+            "Earth": ["観葉植物", "トートバッグ", "小説", "オーガニック石鹸", "陶器のマグ"],
+            "Air": ["スマートフォン", "万年筆", "羽根モチーフ", "香水", "最新ガジェット"],
+            "Water": ["バスソルト", "アクアリウム", "真珠のアクセ", "ガラス製品", "ミネラルウォーター"]
+        };
+
+        function getMoonPhase(date) {
+            // Simple calculation based on known new moon (Jan 6 2000)
+            const knownNewMoon = new Date('2000-01-06 18:14:00');
+            const diffTime = date.getTime() - knownNewMoon.getTime();
+            const diffDays = diffTime / (1000 * 3600 * 24);
+            const cycle = 29.53058867;
+            const age = diffDays % cycle;
+
+            if (age < 1.5 || age > 28) return { phase: "New Moon", name: "新月" };
+            if (age > 13.5 && age < 16.5) return { phase: "Full Moon", name: "満月" };
+            return { phase: "Normal", name: "" };
+        }
+
+        function getLifePathNumber(birthDateStr) {
+            const digits = birthDateStr.replace(/-/g, '').split('').map(Number);
+            let sum = digits.reduce((a, b) => a + b, 0);
+            while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
+                const sumDigits = String(sum).split('').map(Number);
+                sum = sumDigits.reduce((a, b) => a + b, 0);
+            }
+            return sum;
+        }
 
         function getDailyFortune() {
             if (!userBirthdate) return "まずは「せってい」からお誕生日を教えてほしいもま！🎂";
@@ -1549,22 +1586,39 @@
             const birthDate = new Date(userBirthdate);
             const zodiac = getZodiacSign(birthDate);
 
+            // 1. Basic Score
             const dateStr = today.getFullYear() + '' + (today.getMonth() + 1) + '' + today.getDate();
             const birthStr = userBirthdate.replace(/-/g, '');
-
-            // Seed based on Date + Birthdate (consistent for user/day)
             let seed = parseInt(dateStr) + parseInt(birthStr);
             seed = Math.sin(seed) * 10000;
             const score = Math.floor((seed - Math.floor(seed)) * 101); // 0-100
 
-            // Generate Lucky Items based on hash
-            const colorIndex = Math.floor((seed - Math.floor(seed)) * 1000) % luckyColors.length;
-            const itemIndex = Math.floor((seed - Math.floor(seed)) * 2000) % luckyItems.length;
+            // 2. Lucky Color (Planet/Day based)
+            const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon...
+            const colorOptions = luckyColors[dayOfWeek];
+            const colorIndex = Math.floor((seed - Math.floor(seed)) * 100) % colorOptions.length;
+            const color = colorOptions[colorIndex];
 
-            const color = luckyColors[colorIndex];
-            const item = luckyItems[itemIndex];
+            // 3. Lucky Item (Element based)
+            const itemOptions = luckyItems[zodiac.element];
+            const itemIndex = Math.floor((seed - Math.floor(seed)) * 200) % itemOptions.length;
+            const item = itemOptions[itemIndex];
 
-            // Advice based on Element and Score
+            // 4. Moon Phase Advice
+            const moon = getMoonPhase(today);
+            let moonMsg = "";
+            if (moon.phase === "New Moon") moonMsg = "\n🌑 【新月】今日は何かを始めるのに最適な日もま！願い事を書いてみて✨";
+            if (moon.phase === "Full Moon") moonMsg = "\n🌕 【満月】手放すパワーが強い日もま。お掃除やデトックスが吉！🧹";
+
+            // 5. Life Path Number (One-point advice type)
+            const lifePath = getLifePathNumber(userBirthdate);
+            let numMsg = "";
+            if ([1, 8, 11, 22].includes(lifePath)) numMsg = "（リーダーシップを発揮すると吉👑）";
+            else if ([2, 6, 9, 33].includes(lifePath)) numMsg = "（人に優しくすると運気アップ💖）";
+            else if ([3, 5].includes(lifePath)) numMsg = "（楽しむ心を大切にすると吉🎉）";
+            else numMsg = "（コツコツ努力が実を結ぶもま🐢）"; // 4, 7
+
+            // 6. Advice based on Element and Score
             let advice = "";
             const isHigh = score >= 70;
             const isLow = score <= 30;
@@ -1587,7 +1641,7 @@
                 else advice = "人への優しさが巡り巡って自分に返ってくるもま。ありがとうを伝えてみて💕";
             }
 
-            return `【${zodiac.name}】の今日の運勢は...\n🎉 ${score}点 🎉\n\n🎨 ラッキーカラー: ${color}\n✨ ラッキーアイテム: ${item}\n\n💡 アドバイス:\n${advice}\n\nもまちゃんも応援してるもま！💪`;
+            return `【${zodiac.name}】の今日の運勢は...\n🎉 ${score}点 🎉\n\n🎨 ラッキーカラー: ${color}\n✨ ラッキーアイテム: ${item}\n\n💡 アドバイス:\n${advice}\n${moonMsg}\n\n🔢 運命数${lifePath}${numMsg}`;
         }
 
         // --- Chat Functions ---
