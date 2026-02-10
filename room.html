@@ -370,6 +370,18 @@
             border-color: #FFB6C1;
         }
 
+        /* Today's Fortune Button Style */
+        .amoeba-btn.fortune-btn {
+            background: #E6E6FA;
+            /* Lavender */
+            border-color: #9370DB;
+            color: #4B0082;
+        }
+
+        .amoeba-btn.fortune-btn:hover {
+            background: #D8BFD8;
+        }
+
         @media (max-width: 640px) {
             .topic-container {
                 gap: 12px;
@@ -727,7 +739,9 @@
                 <button class="amoeba-btn" onclick="selectTopic('おさんぽ')">おさんぽ🐾</button>
                 <button class="amoeba-btn" onclick="selectTopic('だいすき')">だいすき💕</button>
                 <button class="amoeba-btn" onclick="selectTopic('ないしょ話')">ないしょ話🤫</button>
-                <button class="amoeba-btn" onclick="selectTopic('おなかへった')">おなかへった🍚</button>
+                <button class="amoeba-btn" onclick="selectTopic('夢占いして🌙')">夢占いして🌙</button>
+                <button class="amoeba-btn fortune-btn" onclick="selectTopic('今日の運勢教えて🔮')">今日の運勢教えて🔮</button>
+                <button class="amoeba-btn" onclick="selectTopic('おなかへった')">おなかへった</button>
                 <button class="amoeba-btn" onclick="selectTopic('なに食べよっか～', true)">なに食べよっか～🍴</button>
                 <button class="amoeba-btn" onclick="selectTopic('こわいはなしして', true)">こわいはなしして👻</button>
                 <button class="amoeba-btn" onclick="selectTopic('夢占いして🌙', true)">夢占いして🌙</button>
@@ -777,8 +791,48 @@
                 <button id="reset-name-btn" class="modal-btn btn-reset" onclick="resetNickname()"
                     style="display:none;">おなまえの登録をけす</button>
                 <div class="mt-4">
-                    <button class="modal-btn btn-cancel" onclick="closeModal('settings-modal')">とじる</button>
+                    <label
+                        style="color: #FFB6C1; font-weight: bold; display: block; margin-bottom: 5px;">お誕生日（任意）</label>
+                    <input type="date" id="birthdate-input" class="modal-input" style="font-family: inherit;">
                 </div>
+                <div class="mt-4">
+                    <button class="modal-btn btn-confirm" onclick="saveBirthdate()">保存する</button>
+                    <button class="modal-btn btn-cancel" onclick="closeModal('settings-modal')">とじる</button>
+                    <button class="modal-btn" style="margin-top: 10px; background: #E0BBE4;"
+                        onclick="openBiorhythm()">バイオリズムを見る📈</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biorhythm Modal -->
+        <div id="biorhythm-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-title">📉 もまちゃん健康診断 📈</div>
+                <div id="bio-graph-container"
+                    style="width: 100%; height: 200px; background: #fffaf0; border-radius: 10px; border: 2px solid #FFE4E1; position: relative; overflow: hidden; margin-bottom: 15px;">
+                    <!-- SVG Graph will be inserted here -->
+                    <svg id="bio-svg" width="100%" height="100%" viewBox="0 0 300 150" preserveAspectRatio="none">
+                        <!-- Grid lines -->
+                        <line x1="0" y1="75" x2="300" y2="75" stroke="#ddd" stroke-dasharray="4" />
+                        <line x1="150" y1="0" x2="150" y2="150" stroke="#ddd" stroke-width="2" />
+
+                        <!-- Paths -->
+                        <path id="bio-physical" stroke="#FFB6C1" stroke-width="3" fill="none" stroke-linecap="round" />
+                        <path id="bio-emotional" stroke="#87CEEB" stroke-width="3" fill="none" stroke-linecap="round" />
+                        <path id="bio-intellectual" stroke="#98FB98" stroke-width="3" fill="none"
+                            stroke-linecap="round" />
+                    </svg>
+                    <div style="position: absolute; top: 5px; left: 155px; font-size: 0.8rem; color: #888;">Today</div>
+                </div>
+                <div style="display: flex; justify-content: space-around; font-size: 0.8rem; margin-bottom: 15px;">
+                    <span style="color: #FFB6C1;">● 体調(P)</span>
+                    <span style="color: #87CEEB;">● 気分(E)</span>
+                    <span style="color: #98FB98;">● 知性(I)</span>
+                </div>
+                <div id="bio-message" style="margin-bottom: 15px; font-weight: bold; color: #555;">
+                    データがないもま...お誕生日を教えてね！
+                </div>
+                <button class="modal-btn btn-cancel" onclick="closeModal('biorhythm-modal')">とじる</button>
             </div>
         </div>
 
@@ -1254,15 +1308,59 @@
                     openModal('name-modal');
                 }, 800);
             }
-            settingsModal.style.display = 'flex';
+            openModal('settings-modal');
         }
 
+        // --- History & UI State Management ---
         function openModal(id) {
+            // Push state if not already handled by popstate
+            // If we are already in a modal state, we might want to push another or replace
+            // For simplicity, we stack them.
+            history.pushState({ ui: 'modal', id: id }, '', `#${id}`);
+            _internalOpenModal(id);
+        }
+
+        function _internalOpenModal(id) {
             document.getElementById(id).style.display = 'flex';
         }
 
         function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+            // Instead of hiding directly, we go back in history.
+            // This triggers popstate > _internalCloseAll
+            // Check if we have history state to pop? 
+            // If the user loaded the page with a hash, history.state might be null but length > 1
+            // Safe fallback: just history.back() if we think we are in a state.
+            if (history.state && history.state.ui === 'modal' && history.state.id === id) {
+                history.back();
+            } else {
+                _internalCloseModal(id);
+            }
+        }
+
+        function _internalCloseModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        }
+
+        // Global popstate handler
+        window.addEventListener('popstate', (event) => {
+            // Close everything first (simplest way to ensure clean slate)
+            _internalCloseAllOverlays();
+
+            // Restore based on state
+            if (event.state) {
+                if (event.state.ui === 'modal') {
+                    _internalOpenModal(event.state.id);
+                } else if (event.state.ui === 'menu') {
+                    _internalOpenChat();
+                }
+            }
+        });
+
+        function _internalCloseAllOverlays() {
+            const modals = document.querySelectorAll('.modal-overlay');
+            modals.forEach(m => m.style.display = 'none');
+            document.getElementById('topic-menu').style.display = 'none';
         }
 
         function requestNickname() {
@@ -1280,13 +1378,22 @@
                 return;
             }
 
+            // Name suggestion logic
             const suffixes = ['りん', 'っち', 'もま', 'ぴ', 'ちゃん', 'たん', 'にゃん', 'ぽよ'];
             currentSuggestion = baseName + suffixes[Math.floor(Math.random() * suffixes.length)];
 
             document.getElementById('suggestion-text').innerText = `「${currentSuggestion}」はどうもま？`;
 
-            closeModal('name-modal');
+            // Transition: Close Name Modal (via history replacement or back+push?)
+            // If we just open suggestion on top, we create a stack: [Name, Suggestion].
+            // Back -> Name. This is good.
             openModal('suggestion-modal');
+            // But we might want 'Name' to close visually?
+            // If we leave it open underneath, it's fine.
+            // If we want to replace:
+            // history.replaceState(..., suggestion);
+            // Let's stick to stacking for "Back" support.
+            _internalCloseModal('name-modal'); // Hide previous one visually to avoid clutter
         }
 
         function saveNickname() {
@@ -1308,6 +1415,136 @@
             }
         }
 
+        // --- Birthdate & Biorhythm Logic ---
+        let userBirthdate = localStorage.getItem('moma_user_birthdate') || '';
+
+        function loadBirthdate() {
+            if (userBirthdate) {
+                document.getElementById('birthdate-input').value = userBirthdate;
+            }
+        }
+
+        function saveBirthdate() {
+            const input = document.getElementById('birthdate-input').value;
+            if (input) {
+                userBirthdate = input;
+                localStorage.setItem('moma_user_birthdate', userBirthdate);
+                showBubble("お誕生日をおぼえたもま！🎂");
+            } else {
+                localStorage.removeItem('moma_user_birthdate');
+                userBirthdate = '';
+                showBubble("お誕生日をわすれたもま...");
+            }
+        }
+
+        function openBiorhythm() {
+            if (!userBirthdate) {
+                alert("先にお誕生日を教えてね！");
+                return;
+            }
+            openModal('biorhythm-modal');
+            drawBiorhythmGraph();
+            showBiorhythmMessage();
+            closeModal('settings-modal');
+        }
+
+        function calculateBiorhythm(date, birthDateObj) {
+            const diffTime = date.getTime() - birthDateObj.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            return {
+                physical: Math.sin(2 * Math.PI * diffDays / 23),
+                emotional: Math.sin(2 * Math.PI * diffDays / 28),
+                intellectual: Math.sin(2 * Math.PI * diffDays / 33)
+            };
+        }
+
+        function drawBiorhythmGraph() {
+            if (!userBirthdate) return;
+            const birth = new Date(userBirthdate);
+            const today = new Date();
+
+            // Draw range: -7 days to +7 days
+            const pointsP = [];
+            const pointsE = [];
+            const pointsI = [];
+
+            const width = 300;
+            const height = 150;
+            const totalDays = 14;
+            const pixelsPerDay = width / totalDays;
+
+            for (let i = 0; i <= totalDays; i++) {
+                const dayOffset = i - 7; // 0 is -7 days, 7 is today, 14 is +7 days
+                const targetDate = new Date(today);
+                targetDate.setDate(today.getDate() + dayOffset);
+
+                const bio = calculateBiorhythm(targetDate, birth);
+
+                const x = i * pixelsPerDay;
+                // y = 0 is top, height is bottom. Center is height/2. 
+                // Value 1 -> Top (0), Value -1 -> Bottom (height)
+                // Map [-1, 1] to [height, 0]
+                const yP = (height / 2) - (bio.physical * (height / 2 - 10));
+                const yE = (height / 2) - (bio.emotional * (height / 2 - 10));
+                const yI = (height / 2) - (bio.intellectual * (height / 2 - 10));
+
+                pointsP.push(`${x},${yP}`);
+                pointsE.push(`${x},${yE}`);
+                pointsI.push(`${x},${yI}`);
+            }
+
+            document.getElementById('bio-physical').setAttribute('d', `M ${pointsP.join(' L ')}`);
+            document.getElementById('bio-emotional').setAttribute('d', `M ${pointsE.join(' L ')}`);
+            document.getElementById('bio-intellectual').setAttribute('d', `M ${pointsI.join(' L ')}`);
+        }
+
+        function showBiorhythmMessage() {
+            if (!userBirthdate) return;
+            const birth = new Date(userBirthdate);
+            const today = new Date();
+            const bio = calculateBiorhythm(today, birth);
+
+            let msg = "";
+            let avg = (bio.physical + bio.emotional + bio.intellectual) / 3;
+
+            if (avg > 0.5) {
+                msg = "今日は絶好調もま！新しいことに挑戦するチャンスかも✨";
+            } else if (avg < -0.5) {
+                msg = "今日はムリせず、ゆっくり休むのがいいもま🍵";
+            } else {
+                // Check individual highs/lows
+                if (bio.physical < -0.6) msg = "体が少しお疲れかも？お風呂でリラックスもま♨️";
+                else if (bio.emotional < -0.6) msg = "気分転換が必要かも。好きな音楽を聴くもま🎵";
+                else if (bio.intellectual > 0.6) msg = "冴えてるもま！勉強や仕事がはかどりそう✨";
+                else msg = "いつも通りの穏やかな一日になりそうもま🐾";
+            }
+
+            document.getElementById('bio-message').innerText = msg;
+        }
+
+        function getDailyFortune() {
+            if (!userBirthdate) return "まずは「せってい」からお誕生日を教えてほしいもま！🎂";
+
+            const today = new Date();
+            const dateStr = today.getFullYear() + '' + (today.getMonth() + 1) + '' + today.getDate();
+            const birthStr = userBirthdate.replace(/-/g, '');
+
+            // Simple pseudo-random based on date + birthdate
+            let seed = parseInt(dateStr) + parseInt(birthStr);
+            seed = Math.sin(seed) * 10000;
+            const score = Math.floor((seed - Math.floor(seed)) * 100); // 0-99
+
+            let result = "";
+            if (score >= 90) result = "【大吉】すごいもま！今日は何をやってもうまくいきそう✨";
+            else if (score >= 70) result = "【中吉】いい感じもま！笑顔でいればもっとハッピーに🌸";
+            else if (score >= 40) result = "【小吉】まあまあもま。お気に入りの靴でお出かけすると良いかも👟";
+            else if (score >= 20) result = "【末吉】焦らずマイペースに過ごすのが吉もま🍵";
+            else result = "【凶】...でも大丈夫！もまちゃんがついてるから守ってあげるもま💪";
+
+            return result + `\n(ラッキー度: ${score}%)`;
+        }
+
         // --- Chat Functions ---
         const topicMenu = document.getElementById('topic-menu');
         const menuTopics = document.getElementById('menu-topics');
@@ -1320,6 +1557,11 @@
 
         function openChat() {
             if (state === 'SLEEPING') return;
+            history.pushState({ ui: 'menu' }, '', '#chat');
+            _internalOpenChat();
+        }
+
+        function _internalOpenChat() {
             showTopics();
             topicMenu.style.display = 'flex';
         }
@@ -1430,16 +1672,27 @@
 
         function selectTopic(topic, isAuto = false) {
             if (isAuto && topic === 'なに食べよっか～') {
-                topicMenu.style.display = 'none';
+                if (history.state && history.state.ui === 'menu') history.back();
+                else topicMenu.style.display = 'none';
+
                 const suggestion = getWeightedRandom(mealSuggestions, mealHistory);
                 showBubble(suggestion);
                 return;
             }
 
             if (isAuto && topic === 'こわいはなしして') {
-                topicMenu.style.display = 'none';
+                if (history.state && history.state.ui === 'menu') history.back();
+                else topicMenu.style.display = 'none';
+
                 const story = getWeightedRandom(scaryStories, scaryHistory);
                 showBubble(story);
+                return;
+            }
+
+            if (isAuto && topic === '今日の運勢教えて🔮') {
+                if (history.state && history.state.ui === 'menu') history.back();
+                else topicMenu.style.display = 'none';
+                showBubble(getDailyFortune());
                 return;
             }
 
@@ -1461,7 +1714,11 @@
         }
 
         function closeChat(e) {
-            topicMenu.style.display = 'none';
+            if (history.state && history.state.ui === 'menu') {
+                history.back();
+            } else {
+                topicMenu.style.display = 'none';
+            }
         }
 
         const topicContexts = {
@@ -1482,7 +1739,14 @@
             const text = userInput.value.trim();
             if (!text) return;
 
-            topicMenu.style.display = 'none';
+            // Close menu via history back if open
+            if (history.state && history.state.ui === 'menu') {
+                history.back();
+                // Note: back() is async. The Menu UI will close via popstate.
+                // We proceed to process chat.
+            } else {
+                topicMenu.style.display = 'none';
+            }
             userInput.value = '';
 
             showBubble('...');
@@ -1617,6 +1881,7 @@
             height = container.offsetHeight;
             updatePosition();
             loadMomaData();
+            loadBirthdate();
         });
         window.addEventListener('resize', () => {
             width = container.offsetWidth;
