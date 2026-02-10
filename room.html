@@ -1444,7 +1444,6 @@
             openModal('biorhythm-modal');
             drawBiorhythmGraph();
             showBiorhythmMessage();
-            closeModal('settings-modal');
         }
 
         function calculateBiorhythm(date, birthDateObj) {
@@ -1696,8 +1695,11 @@
             }
 
             if (isAuto && topic === 'バイオリズム見せて📈') {
-                if (history.state && history.state.ui === 'menu') history.back();
-                else topicMenu.style.display = 'none';
+                if (!userBirthdate) {
+                    alert("先にお誕生日を教えてね！");
+                    return;
+                }
+                topicMenu.style.display = 'none';
                 openBiorhythm();
                 return;
             }
