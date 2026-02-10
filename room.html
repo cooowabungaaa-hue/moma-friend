@@ -1521,26 +1521,73 @@
             document.getElementById('bio-message').innerText = msg;
         }
 
+        function getZodiacSign(date) {
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+
+            if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) return { name: "おひつじ座", element: "Fire" };
+            if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) return { name: "おうし座", element: "Earth" };
+            if ((month == 5 && day >= 21) || (month == 6 && day <= 21)) return { name: "ふたご座", element: "Air" };
+            if ((month == 6 && day >= 22) || (month == 7 && day <= 22)) return { name: "かに座", element: "Water" };
+            if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) return { name: "しし座", element: "Fire" };
+            if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) return { name: "おとめ座", element: "Earth" };
+            if ((month == 9 && day >= 23) || (month == 10 && day <= 23)) return { name: "てんびん座", element: "Air" };
+            if ((month == 10 && day >= 24) || (month == 11 && day <= 22)) return { name: "さそり座", element: "Water" };
+            if ((month == 11 && day >= 23) || (month == 12 && day <= 21)) return { name: "いて座", element: "Fire" };
+            if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) return { name: "やぎ座", element: "Earth" };
+            if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return { name: "みずがめ座", element: "Air" };
+            return { name: "うお座", element: "Water" };
+        }
+
+        const luckyColors = ["レッド", "ブルー", "グリーン", "イエロー", "オレンジ", "ピンク", "パープル", "ホワイト", "ブラック", "シルバー", "ゴールド", "ネイビー"];
+        const luckyItems = ["ハンカチ", "手帳", "腕時計", "アロマ", "マグカップ", "観葉植物", "スニーカー", "本", "鏡", "帽子", "アクセサリー", "お菓子"];
+
         function getDailyFortune() {
             if (!userBirthdate) return "まずは「せってい」からお誕生日を教えてほしいもま！🎂";
 
             const today = new Date();
+            const birthDate = new Date(userBirthdate);
+            const zodiac = getZodiacSign(birthDate);
+
             const dateStr = today.getFullYear() + '' + (today.getMonth() + 1) + '' + today.getDate();
             const birthStr = userBirthdate.replace(/-/g, '');
 
-            // Simple pseudo-random based on date + birthdate
+            // Seed based on Date + Birthdate (consistent for user/day)
             let seed = parseInt(dateStr) + parseInt(birthStr);
             seed = Math.sin(seed) * 10000;
-            const score = Math.floor((seed - Math.floor(seed)) * 100); // 0-99
+            const score = Math.floor((seed - Math.floor(seed)) * 101); // 0-100
 
-            let result = "";
-            if (score >= 90) result = "【大吉】すごいもま！今日は何をやってもうまくいきそう✨";
-            else if (score >= 70) result = "【中吉】いい感じもま！笑顔でいればもっとハッピーに🌸";
-            else if (score >= 40) result = "【小吉】まあまあもま。お気に入りの靴でお出かけすると良いかも👟";
-            else if (score >= 20) result = "【末吉】焦らずマイペースに過ごすのが吉もま🍵";
-            else result = "【凶】...でも大丈夫！もまちゃんがついてるから守ってあげるもま💪";
+            // Generate Lucky Items based on hash
+            const colorIndex = Math.floor((seed - Math.floor(seed)) * 1000) % luckyColors.length;
+            const itemIndex = Math.floor((seed - Math.floor(seed)) * 2000) % luckyItems.length;
 
-            return result + `\n(ラッキー度: ${score}%)`;
+            const color = luckyColors[colorIndex];
+            const item = luckyItems[itemIndex];
+
+            // Advice based on Element and Score
+            let advice = "";
+            const isHigh = score >= 70;
+            const isLow = score <= 30;
+
+            if (zodiac.element === "Fire") {
+                if (isHigh) advice = "情熱的に行動すると吉もま！新しいことに挑戦してみて🔥";
+                else if (isLow) advice = "今日は少し冷静に。深呼吸してリラックスするもま😌";
+                else advice = "明るい笑顔が運気を呼ぶもま！周りの人を元気にしてみて✨";
+            } else if (zodiac.element === "Earth") {
+                if (isHigh) advice = "コツコツ積み重ねたことが実を結ぶ日もま！自信を持って🌱";
+                else if (isLow) advice = "焦りは禁物もま。美味しいものを食べて地に足をつけるもま🍠";
+                else advice = "整理整頓がラッキーアクションもま！スッキリすると良いことあるかも✨";
+            } else if (zodiac.element === "Air") {
+                if (isHigh) advice = "アイデアがどんどん湧いてくる日もま！友達とシェアしてみて☁️";
+                else if (isLow) advice = "情報過多で疲れちゃうかも？スマホを置いてデジタルデトックスもま📵";
+                else advice = "新しい風を感じる場所へ行くと吉もま！窓を開けて換気もおすすめ✨";
+            } else if (zodiac.element === "Water") {
+                if (isHigh) advice = "直感が冴え渡る日もま！自分の気持ちに正直に動いてみて💧";
+                else if (isLow) advice = "感情が揺れやすいかも。好きな音楽を聴いて心を落ち着けるもま🎵";
+                else advice = "人への優しさが巡り巡って自分に返ってくるもま。ありがとうを伝えてみて💕";
+            }
+
+            return `【${zodiac.name}】の今日の運勢は...\n🎉 ${score}点 🎉\n\n🎨 ラッキーカラー: ${color}\n✨ ラッキーアイテム: ${item}\n\n💡 アドバイス:\n${advice}\n\nもまちゃんも応援してるもま！💪`;
         }
 
         // --- Chat Functions ---
