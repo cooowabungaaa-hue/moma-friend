@@ -451,7 +451,9 @@
             color: #333;
             font-weight: bold;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            z-index: 50;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            /* Ensure it appears above modals */
             display: none;
             max-width: 320px;
             text-align: center;
@@ -806,7 +808,7 @@
                     <input type="date" id="birthdate-input" class="modal-input" style="font-family: inherit;">
                 </div>
                 <div class="mt-4">
-                    <button class="modal-btn btn-confirm" onclick="saveBirthdate()">保存する</button>
+                    <button class="modal-btn btn-confirm" onclick="saveBirthdate(this)">保存する</button>
                     <button class="modal-btn btn-cancel" onclick="closeModal('settings-modal')">とじる</button>
                 </div>
             </div>
@@ -1446,6 +1448,25 @@
         }
 
         // --- Birthdate & Biorhythm Logic ---
+        function animateButtonSuccess(btn, originalText) {
+            if (!btn) return;
+            const originalColor = btn.style.backgroundColor;
+            btn.innerText = "保存しました！✨";
+            btn.style.backgroundColor = "#98FB98"; // Pastel Green
+            btn.style.borderColor = "#98FB98";
+            btn.disabled = true;
+
+            // Play a little sound if possible
+            playNote();
+
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.backgroundColor = originalColor;
+                btn.style.borderColor = ""; // Reset
+                btn.disabled = false;
+            }, 1500);
+        }
+
         let userBirthdate = localStorage.getItem('moma_user_birthdate') || '';
 
         function loadBirthdate() {
@@ -1454,12 +1475,16 @@
             }
         }
 
-        function saveBirthdate() {
+        function saveBirthdate(btnElement) {
             const input = document.getElementById('birthdate-input').value;
             if (input) {
                 userBirthdate = input;
                 localStorage.setItem('moma_user_birthdate', userBirthdate);
                 showBubble("お誕生日をおぼえたもま！🎂");
+
+                // Visual Feedback
+                const btn = btnElement || document.querySelector('#settings-modal .btn-confirm:last-of-type');
+                animateButtonSuccess(btn, "保存する");
             } else {
                 localStorage.removeItem('moma_user_birthdate');
                 userBirthdate = '';
