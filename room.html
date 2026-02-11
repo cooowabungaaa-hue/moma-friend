@@ -1302,6 +1302,8 @@
         // --- Nickname System Logic ---
         let userNickname = localStorage.getItem('moma_user_nickname') || '';
         let currentSuggestion = '';
+        let currentBaseName = '';
+
 
         function openSettings() {
             const settingsModal = document.getElementById('settings-modal');
@@ -1335,14 +1337,9 @@
                 return;
             }
 
-            const suffixes = ['りん', 'っち', 'もま', 'ぴ', 'ちゃん', 'たん', 'にゃん', 'ぽよ'];
-            currentSuggestion = baseName + suffixes[Math.floor(Math.random() * suffixes.length)];
-
-            document.getElementById('suggestion-text').innerText = `「${currentSuggestion}」はどうもま？`;
-
-            // Close settings and open suggestion
-            _internalCloseModal('settings-modal');
-            openModal('suggestion-modal');
+            // Store for re-rolls
+            currentBaseName = baseName;
+            generateAndShowSuggestion();
         }
 
         // --- History & UI State Management ---
@@ -1398,36 +1395,38 @@
         }
 
         function requestNickname() {
-            const input = document.getElementById('base-name-input');
-            const baseName = input.value.trim();
-
-            if (!baseName) {
-                alert('おなまえをいれてね！');
-                return;
+            // If we have a stored base name, use it.
+            if(!currentBaseName) {
+                 const input = document.getElementById('settings-name-input');
+                 if(input && input.value) {
+                     currentBaseName = input.value.trim();
+                 } else {
+                     const oldInput = document.getElementById('base-name-input');
+                     if(oldInput && oldInput.value) {
+                         currentBaseName = oldInput.value.trim();
+                     }
+                 }
+                 
+                 if(!currentBaseName) {
+                     alert("お名前がわかりません...もう一度設定から入力してね！");
+                     closeModal('suggestion-modal');
+                     openSettings();
+                     return;
+                 }
             }
+            generateAndShowSuggestion();
+        }
 
-            // Check if Hiragana only
-            if (!/^[ぁ-んー]+$/.test(baseName)) {
-                alert('ひらがなでいれてね✨');
-                return;
-            }
-
-            // Name suggestion logic
+        function generateAndShowSuggestion() {
             const suffixes = ['りん', 'っち', 'もま', 'ぴ', 'ちゃん', 'たん', 'にゃん', 'ぽよ'];
-            currentSuggestion = baseName + suffixes[Math.floor(Math.random() * suffixes.length)];
+            currentSuggestion = currentBaseName + suffixes[Math.floor(Math.random() * suffixes.length)];
 
             document.getElementById('suggestion-text').innerText = `「${currentSuggestion}」はどうもま？`;
-
-            // Transition: Close Name Modal (via history replacement or back+push?)
-            // If we just open suggestion on top, we create a stack: [Name, Suggestion].
-            // Back -> Name. This is good.
+            
+            // Ensure settings is closed
+            _internalCloseModal('settings-modal'); 
+            _internalCloseModal('name-modal');
             openModal('suggestion-modal');
-            // But we might want 'Name' to close visually?
-            // If we leave it open underneath, it's fine.
-            // If we want to replace:
-            // history.replaceState(..., suggestion);
-            // Let's stick to stacking for "Back" support.
-            _internalCloseModal('name-modal'); // Hide previous one visually to avoid clutter
         }
 
         function saveNickname() {
