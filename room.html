@@ -16,34 +16,45 @@
         }
 
         #room-container {
+            display: flex;
+            flex-direction: column;
             width: 100vw;
             height: 100vh;
             height: 100dvh;
+            margin: 0 auto;
+            overflow: hidden;
+            background-color: #d1bfe0;
+            /* PC version outer background */
+        }
+
+        #room-area {
+            flex: 1;
+            position: relative;
             background-image: url('./room-bg-v2.png');
             background-size: cover;
             background-position: center bottom;
-            position: relative;
             background-repeat: no-repeat;
-            background-color: #fdf6ec;
+            overflow: hidden;
         }
 
-        /* No need for separate mobile sizing with the new dynamic calculation */
-        @media (max-width: 768px) {
-            #room-container {
-                background-size: cover;
-                background-position: center bottom;
-            }
+        #menu-area {
+            flex-shrink: 0;
+            padding: 10px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+            background-color: transparent;
+            z-index: 50;
+            display: flex;
+            justify-content: center;
         }
 
-        /* Add a subtle overlay to make it look intentionally stylistic and hide bottom edge */
-        #room-container::after {
+        /* Subtle overlay for room depth */
+        #room-area::after {
             content: '';
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 100px;
-            background: linear-gradient(to top, rgba(255, 255, 255, 0.4), transparent);
+            height: 60px;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.3), transparent);
             pointer-events: none;
             z-index: 1;
         }
@@ -132,32 +143,35 @@
             }
         }
 
-        /* UI Controls */
+        /* UI Controls (Glassmorphism Menu) */
         .ui-panel {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.4);
-            /* More transparent to show floor */
-            backdrop-filter: blur(8px);
-            padding: 0.8rem 1.5rem;
-            border-radius: 9999px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 50px;
             display: flex;
-            gap: 1.2rem;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-            /* Subtle shadow */
-            z-index: 30;
-            width: max-content;
-            max-width: 95vw;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 60;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            /* Changed from absolute to relative within flex container */
+            bottom: unset;
+            /* Remove old absolute positioning */
+            left: unset;
+            /* Remove old absolute positioning */
+            transform: unset;
+            /* Remove old absolute positioning */
         }
 
         @media (max-width: 640px) {
             .ui-panel {
-                /* Use dynamic viewport safe area if available, otherwise lift it higher */
-                bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
-                padding: 0.4rem 0.5rem;
-                gap: 0.3rem;
+                padding: 8px 12px;
+                gap: 0.4rem;
                 border-radius: 1.2rem;
                 justify-content: center;
                 flex-wrap: nowrap !important;
@@ -668,66 +682,70 @@
 <body>
 
     <div id="room-container">
-        <!-- Transition Overlay -->
-        <div id="transition-overlay"></div>
+        <div id="room-area">
+            <!-- Transition Overlay -->
+            <div id="transition-overlay"></div>
 
-        <!-- Night Overlay -->
-        <div id="night-overlay"></div>
+            <!-- Night Overlay -->
+            <div id="night-overlay"></div>
 
-        <!-- Moma-chan -->
-        <div id="moma-character" class="breathe" onclick="petMoma()">
-            <img id="moma-img" src="./moma-idle.png" alt="Moma-chan" style="width: 100%; pointer-events: none;">
-        </div>
+            <!-- Moma-chan -->
+            <div id="moma-character" class="breathe" onclick="petMoma()">
+                <img id="moma-img" src="./moma-idle.png" alt="Moma-chan" style="width: 100%; pointer-events: none;">
+            </div>
 
-        <!-- Food Sub Menu -->
-        <div id="food-menu" class="sub-menu">
-            <div class="sub-btn" onclick="feedMoma('meal')">
-                <span>🍚</span>
-                <label>ごはん</label>
+            <!-- Food Sub Menu -->
+            <div id="food-menu" class="sub-menu">
+                <div class="sub-btn" onclick="feedMoma('meal')">
+                    <span>🍚</span>
+                    <label>ごはん</label>
+                </div>
+                <div class="sub-btn" onclick="feedMoma('sweets')">
+                    <span>🍰</span>
+                    <label>おやつ</label>
+                </div>
+                <div class="sub-btn" onclick="feedMoma('drink')">
+                    <span>🥤</span>
+                    <label>のみもの</label>
+                </div>
             </div>
-            <div class="sub-btn" onclick="feedMoma('sweets')">
-                <span>🍰</span>
-                <label>おやつ</label>
-            </div>
-            <div class="sub-btn" onclick="feedMoma('drink')">
-                <span>🥤</span>
-                <label>のみもの</label>
-            </div>
-        </div>
 
-        <!-- Sleep Sub Menu -->
-        <div id="sleep-menu" class="sub-menu">
-            <div class="sub-btn" onclick="selectSleepSong(1)">
-                <span>🎐</span>
-                <label>かぜ</label>
-            </div>
-            <div class="sub-btn" onclick="selectSleepSong(2)">
-                <span>🐚</span>
-                <label>なみ</label>
-            </div>
-            <div class="sub-btn" onclick="selectSleepSong(3)">
-                <span>🕯️</span>
-                <label>ともしび</label>
-            </div>
-            <div class="sub-btn" onclick="selectSleepSong(4)">
-                <span>🧸</span>
-                <label>まどろみ</label>
-            </div>
-            <div class="sub-btn" onclick="selectSleepSong(5)">
-                <span>☁️</span>
-                <label>くも</label>
+            <!-- Sleep Sub Menu -->
+            <div id="sleep-menu" class="sub-menu">
+                <div class="sub-btn" onclick="selectSleepSong(1)">
+                    <span>🎐</span>
+                    <label>かぜ</label>
+                </div>
+                <div class="sub-btn" onclick="selectSleepSong(2)">
+                    <span>🐚</span>
+                    <label>なみ</label>
+                </div>
+                <div class="sub-btn" onclick="selectSleepSong(3)">
+                    <span>🕯️</span>
+                    <label>ともしび</label>
+                </div>
+                <div class="sub-btn" onclick="selectSleepSong(4)">
+                    <span>🧸</span>
+                    <label>まどろみ</label>
+                </div>
+                <div class="sub-btn" onclick="selectSleepSong(5)">
+                    <span>☁️</span>
+                    <label>くも</label>
+                </div>
             </div>
         </div>
 
         <!-- UI Controls (Tamagotchi Style) -->
-        <div class="ui-panel">
-            <button class="action-btn" onclick="toggleFoodMenu()" title="なにかたべる？">🥪</button>
-            <button class="action-btn" onclick="toggleWalkMode()" title="おさんぽモード">🐾</button>
-            <button class="action-btn" onclick="openChat()" title="おはなし">💬</button>
-            <button class="action-btn" onclick="toggleSleepMenu()" title="夢の中へ">🌙</button>
-            <button class="action-btn bg-slate-100" onclick="navigateWithTransition('index.html')"
-                title="もどる">🏠</button>
-            <button class="settings-btn" title="おなまえ" onclick="openSettings()">📛</button>
+        <div id="menu-area">
+            <div class="ui-panel">
+                <button class="action-btn" onclick="toggleFoodMenu()" title="なにかたべる？">🥪</button>
+                <button class="action-btn" onclick="toggleWalkMode()" title="おさんぽモード">🐾</button>
+                <button class="action-btn" onclick="openChat()" title="おはなし">💬</button>
+                <button class="action-btn" onclick="toggleSleepMenu()" title="夢の中へ">🌙</button>
+                <button class="action-btn bg-slate-100" onclick="navigateWithTransition('index.html')"
+                    title="もどる">🏠</button>
+                <button class="settings-btn" title="おなまえ" onclick="openSettings()">📛</button>
+            </div>
         </div>
 
         <!-- Topic Menu -->
@@ -857,13 +875,20 @@
 
         const moma = document.getElementById('moma-character');
         const momaImg = document.getElementById('moma-img');
-        const container = document.getElementById('room-container');
+        const container = document.getElementById('room-area'); // Target room-area instead of full container
 
         let state = 'IDLE'; // IDLE, WALKING, EATING, SLEEPING
         let width = container.offsetWidth;
         let height = container.offsetHeight;
         let momaX = width / 2 - 125;
-        let momaY = height / 2 + 100;
+        let momaY = height - 250; // Place near bottom initially
+
+        // Update width/height on resize
+        window.addEventListener('resize', () => {
+            width = container.offsetWidth;
+            height = container.offsetHeight;
+            updatePosition();
+        });
 
         // Initialize Position
         updatePosition();
@@ -1036,21 +1061,21 @@
         function getMomaSafeBounds() {
             // Returns the safe pixel coordinates for Moma's top-left corner
             // accounts for character size and room layout
-            const charWidth = moma.offsetWidth;
-            const charHeight = moma.offsetHeight;
+            const charWidth = moma.offsetWidth || 250;
+            const charHeight = moma.offsetHeight || 250;
 
-            // Standard Bounds (Desktop/Tablet)
-            let minXPercent = 0.28;
-            let maxXPercent = 0.72;
-            let minYPercent = 0.58;
-            let maxYPercent = 0.78;
+            // Desktop Bounds (Percentage of room-area)
+            let minXPercent = 0.10;
+            let maxXPercent = 0.90;
+            let minYPercent = 0.40; // Avoid the upper wall/shelf area
+            let maxYPercent = 0.95; // Close to the floor edge
 
-            // Mobile Enhancements (Wider range to avoid feeling cramped)
+            // Mobile Enhancements
             if (window.innerWidth <= 768) {
-                minXPercent = 0.10; // Allow moving more to the left
-                maxXPercent = 0.90; // Allow moving more to the right
-                minYPercent = 0.50; // Use more vertical space
-                maxYPercent = 0.80;
+                minXPercent = 0.05;
+                maxXPercent = 0.95;
+                minYPercent = 0.45;
+                maxYPercent = 0.98;
             }
 
             const minX = width * minXPercent;
@@ -1396,23 +1421,23 @@
 
         function requestNickname() {
             // If we have a stored base name, use it.
-            if(!currentBaseName) {
-                 const input = document.getElementById('settings-name-input');
-                 if(input && input.value) {
-                     currentBaseName = input.value.trim();
-                 } else {
-                     const oldInput = document.getElementById('base-name-input');
-                     if(oldInput && oldInput.value) {
-                         currentBaseName = oldInput.value.trim();
-                     }
-                 }
-                 
-                 if(!currentBaseName) {
-                     alert("お名前がわかりません...もう一度設定から入力してね！");
-                     closeModal('suggestion-modal');
-                     openSettings();
-                     return;
-                 }
+            if (!currentBaseName) {
+                const input = document.getElementById('settings-name-input');
+                if (input && input.value) {
+                    currentBaseName = input.value.trim();
+                } else {
+                    const oldInput = document.getElementById('base-name-input');
+                    if (oldInput && oldInput.value) {
+                        currentBaseName = oldInput.value.trim();
+                    }
+                }
+
+                if (!currentBaseName) {
+                    alert("お名前がわかりません...もう一度設定から入力してね！");
+                    closeModal('suggestion-modal');
+                    openSettings();
+                    return;
+                }
             }
             generateAndShowSuggestion();
         }
@@ -1422,9 +1447,9 @@
             currentSuggestion = currentBaseName + suffixes[Math.floor(Math.random() * suffixes.length)];
 
             document.getElementById('suggestion-text').innerText = `「${currentSuggestion}」はどうもま？`;
-            
+
             // Ensure settings is closed
-            _internalCloseModal('settings-modal'); 
+            _internalCloseModal('settings-modal');
             _internalCloseModal('name-modal');
             openModal('suggestion-modal');
         }
@@ -1561,18 +1586,40 @@
             const bio = calculateBiorhythm(today, birth);
 
             let msg = "";
-            let avg = (bio.physical + bio.emotional + bio.intellectual) / 3;
+            const threshold = 0.15;
 
-            if (avg > 0.5) {
-                msg = "今日は絶好調もま！新しいことに挑戦するチャンスかも✨";
-            } else if (avg < -0.5) {
-                msg = "今日はムリせず、ゆっくり休むのがいいもま🍵";
+            // 1. Critical Day (交差日) Check
+            const isCriticalP = Math.abs(bio.physical) < threshold;
+            const isCriticalE = Math.abs(bio.emotional) < threshold;
+            const isCriticalI = Math.abs(bio.intellectual) < threshold;
+            const criticalCount = [isCriticalP, isCriticalE, isCriticalI].filter(Boolean).length;
+
+            if (criticalCount >= 2) {
+                msg = "【要注意日】今日は波が重なる特別な注意日もま...！無理せず、もまと一緒にのんびり過ごすのが一番もまよ。🏠✨";
+            } else if (isCriticalP) {
+                msg = "今日は「物理」の注意日もま。体が重く感じたり、ケガをしやすいかも。無理は禁物もま！🧱";
+            } else if (isCriticalE) {
+                msg = "今日は「感情」の注意日もま。心がざわついたり、涙もろくなったりするかも。自分を甘やかしてね🍵";
+            } else if (isCriticalI) {
+                msg = "今日は「知性」の注意日もま。集中力が途切れがちかも。大事な書類のチェックは慎重に、もま！📝";
             } else {
-                // Check individual highs/lows
-                if (bio.physical < -0.6) msg = "体が少しお疲れかも？お風呂でリラックスもま♨️";
-                else if (bio.emotional < -0.6) msg = "気分転換が必要かも。好きな音楽を聴くもま🎵";
-                else if (bio.intellectual > 0.6) msg = "冴えてるもま！勉強や仕事がはかどりそう✨";
-                else msg = "いつも通りの穏やかな一日になりそうもま🐾";
+                // 2. Combination patterns
+                const p = bio.physical >= 0 ? '+' : '-';
+                const e = bio.emotional >= 0 ? '+' : '-';
+                const i = bio.intellectual >= 0 ? '+' : '-';
+                const pattern = p + e + i;
+
+                const patterns = {
+                    '+++': '無敵モードもま！何をやってもうまくいく最高の1日✨',
+                    '++-': 'パワー全開もま！深く考えすぎず、直感で動くと吉🐾',
+                    '+-+': '効率重視でOKもま。一人の時間を大切に作業に没頭✨',
+                    '+--': '体力はバッチリもま。体を動かしてリフレッシュもま！🏃',
+                    '-++': 'アイデアが止まらないもま！座ってできる創作活動が吉🎨',
+                    '-+-': 'お喋りや音楽がラッキーもま。ゆったり自分を甘やかす日🍵',
+                    '--+': '頭脳派な1日もま。整理整頓や読書で静かに過ごすのが吉📚',
+                    '---': '今日は充電DAYもま。もまと一緒にゆっくり寝るもま...💤'
+                };
+                msg = patterns[pattern] || "いつも通りの穏やかな一日になりそうもま🐾";
             }
 
             document.getElementById('bio-message').innerText = msg;
