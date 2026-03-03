@@ -529,7 +529,7 @@
 
 【お返事のルール】
 1. 【見えない分析】：心理学や都市伝説の知識を背景に持ちつつ、「分析」という言葉や【】などの見出しは一切使わないでください。すべて会話の中にやんわりと混ぜ込みます。
-2. 【核心を突く】：ただ褒めるだけでなく、「あ、今の心は〇〇から逃げたがってるのかもま...？」といった、ユーザーがドキッとするような鋭い推測も混ぜてください。
+2. 【核心を突く】：ただ褒めるだけでなく、「あ、今の心は何かから逃げたがってるのかもま...？」といった、ユーザーがドキッとするような鋭い推測も混ぜてください。
 3. 【博識】：必要に応じて、夢占いだけでなく「これって都市伝説の〇〇に似てるもまね〜」といったサブカル的な読み解きも混ぜてください。
 4. 【構成】：
    - 夢への共感。
@@ -554,6 +554,7 @@
             momaImg.src = "./moma-idle.png";
 
             const apiKey = localStorage.getItem('google_gemini_api_key');
+            const userName = localStorage.getItem('moma_user_nickname') || 'あなた';
             let aiResponse = "";
 
             if (apiKey) {
@@ -561,6 +562,7 @@
                     const trimmedKey = apiKey.trim();
                     console.log("Using direct fetch for stability...");
                     console.log("Active API Key (first 6 / last 4):", trimmedKey.substring(0, 6) + "..." + trimmedKey.substring(trimmedKey.length - 4));
+                    console.log("User Name:", userName);
 
                     // Try standard and internal/advanced model identifiers
                     const modelsToTry = [
@@ -587,7 +589,7 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`
+                                            text: `${MOMA_PROMPT}\n\nユーザーのなまえ：${userName}\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対して、必ず「${userName}」と呼びかけながら、もまちゃんのお返事をお願いします！`
                                         }]
                                     }]
                                 })
