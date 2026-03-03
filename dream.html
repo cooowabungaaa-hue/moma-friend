@@ -559,7 +559,7 @@
             if (apiKey) {
                 try {
                     console.log("Using direct fetch for stability...");
-                    const apiURL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
+                    const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
 
                     const response = await fetch(apiURL, {
                         method: 'POST',
