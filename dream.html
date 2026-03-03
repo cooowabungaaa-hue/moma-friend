@@ -567,7 +567,10 @@
             if (apiKey) {
                 try {
                     const genAI = new GoogleGenerativeAI(apiKey);
-                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                    // Use v1 for better stability and specific model name
+                    const model = genAI.getGenerativeModel({
+                        model: "gemini-1.5-flash"
+                    }, { apiVersion: 'v1' });
 
                     const prompt = `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`;
 
@@ -575,10 +578,16 @@
                     aiResponse = result.response.text();
                 } catch (error) {
                     console.error("AI Error:", error);
-                    aiResponse = "ごめんね、なんだか頭がぼーっとしちゃうもま...💧 APIキーが正しいか確認してみてね。";
+                    if (error.message.includes("404")) {
+                        aiResponse = "ごめんね、AIの準備がうまくいかなかったもま...💧 もう一度ページを読み込み直してみてね。";
+                    } else if (error.message.includes("API key")) {
+                        aiResponse = "APIキーが間違っているみたいもま...💧 設定画面からもう一度確認してみてね。";
+                    } else {
+                        aiResponse = "ごめんね、なんだか頭がぼーっとしちゃうもま...💧 インターネットの接続を確認してみてね。";
+                    }
                 }
             } else {
-                aiResponse = `日記を記録したもま！「${title || '不思議な夢'}」だね✨\nアドバイス機能設定からAPIキーを入れると、もっと詳しくお返事できるもまよ！`;
+                aiResponse = `日記を記録したもま！「${title || '不思議な夢'}」だね✨\n設定からAPIキーを入れると、もまちゃんが心理学の観点で詳しくお返事するもまよ！`;
             }
 
             // 保存処理
