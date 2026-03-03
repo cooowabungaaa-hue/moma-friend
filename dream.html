@@ -558,32 +558,57 @@
 
             if (apiKey) {
                 try {
+                    const trimmedKey = apiKey.trim();
                     console.log("Using direct fetch for stability...");
-                    const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
+                    console.log("Active API Key (first 6 / last 4):", trimmedKey.substring(0, 6) + "..." + trimmedKey.substring(trimmedKey.length - 4));
 
-                    const response = await fetch(apiURL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [{
-                                    text: `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`
-                                }]
-                            }]
-                        })
-                    });
+                    // Try multiple model identifiers in case of project-specific availability issues
+                    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp"];
+                    let lastError = null;
+                    let success = false;
 
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        console.error("API Error Response:", errorData);
-                        throw new Error(errorData.error ? errorData.error.message : "Connect failed");
+                    for (const modelName of modelsToTry) {
+                        try {
+                            console.log(`Trying model: ${modelName}...`);
+                            const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${trimmedKey}`;
+
+                            const response = await fetch(apiURL, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    contents: [{
+                                        parts: [{
+                                            text: `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`
+                                        }]
+                                    }]
+                                })
+                            });
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                                    aiResponse = data.candidates[0].content.parts[0].text;
+                                    console.log(`Successfully generated content via ${modelName}.`);
+                                    success = true;
+                                    break;
+                                }
+                            } else {
+                                const errorData = await response.json();
+                                console.warn(`Model ${modelName} failed:`, errorData);
+                                lastError = errorData.error ? errorData.error.message : "Connect failed";
+                                if (lastError.includes("API key")) break; // Don't retry different models if key is invalid
+                            }
+                        } catch (e) {
+                            console.warn(`Error trying ${modelName}:`, e);
+                            lastError = e.message;
+                        }
                     }
 
-                    const data = await response.json();
-                    aiResponse = data.candidates[0].content.parts[0].text;
-                    console.log("Successfully generated content via fetch.");
+                    if (!success) {
+                        throw new Error(lastError || "All models failed");
+                    }
 
                 } catch (error) {
                     console.error("Detailed AI Error:", error);
@@ -594,7 +619,7 @@
                     } else if (error.message.includes("quota") || error.message.includes("429")) {
                         aiResponse = "お勉強しすぎて、ちょっと知恵熱が出ちゃったもま...🤒 少しお休みしてからまた教えてね。";
                     } else {
-                        aiResponse = "いちやづけじゃ難しかったもま...💧 頭がぼーっとしちゃうから、ゆっくり休んでからまたお話ししよ！";
+                        aiResponse = `いちやづけじゃ難しかったもま...💧 (${error.message})`;
                     }
                 }
             } else {
