@@ -566,20 +566,46 @@
 
             if (apiKey) {
                 try {
-                    const genAI = new GoogleGenerativeAI(apiKey);
-                    // Revert to stable model name without explicit version for now
-                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                    const genAI = new GoogleGenerativeAI(apiKey.trim());
+                    console.log("API Key loaded (first 4 chars):", apiKey.trim().substring(0, 4) + "...");
 
-                    const prompt = `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`;
+                    // Try multiple model/version combinations as fallbacks
+                    const configs = [
+                        { name: "gemini-1.5-flash", version: "v1" },
+                        { name: "gemini-1.5-flash-latest", version: "v1" },
+                        { name: "gemini-1.5-pro", version: "v1" },
+                        { name: "gemini-1.5-flash", version: "v1beta" }
+                    ];
 
-                    const result = await model.generateContent(prompt);
-                    aiResponse = result.response.text();
+                    let success = false;
+                    for (const config of configs) {
+                        try {
+                            console.log(`Trying ${config.name} with API version ${config.version}...`);
+                            const model = genAI.getGenerativeModel({ model: config.name }, { apiVersion: config.version });
+                            const prompt = `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`;
+
+                            const result = await model.generateContent(prompt);
+                            aiResponse = result.response.text();
+                            success = true;
+                            console.log(`Successfully generated content using ${config.name}`);
+                            break;
+                        } catch (err) {
+                            console.warn(`Failed with ${config.name} (${config.version}):`, err);
+                            if (err.message.includes("API key")) throw err; // Key errors shouldn't retry
+                        }
+                    }
+
+                    if (!success) {
+                        throw new Error("All models failed to respond.");
+                    }
                 } catch (error) {
                     console.error("Detailed AI Error:", error);
                     if (error.message.includes("404") || error.message.includes("not found")) {
-                        aiResponse = "ごめんね、AIさんの準備がうまくいかなかったもま...💧 APIキーの設定が正しいかもう一度確認してみてね。";
+                        aiResponse = "ごめんね、AIさんの準備がうまくいかなかったもま...💧 APIキーの設定（Google AI Studio）で『Gemini API』が有効か確認してみてね。";
                     } else if (error.message.includes("API key")) {
-                        aiResponse = "APIキーが間違っているみたいもま...💧 設定画面からもう一度確認してみてね。";
+                        aiResponse = "APIキーが間違っているみたいもま...💧 設定画面でもう一度貼り付け直してみてね。";
+                    } else if (error.message.includes("quota") || error.message.includes("429")) {
+                        aiResponse = "ごめんね、ちょっとお話しすぎちゃったもま...💧 少し時間を置いてからまた教えてね。";
                     } else {
                         aiResponse = "ごめんね、なんだか頭がぼーっとしちゃうもま...💧 少し時間を置いてからもう一度試してみてね。";
                     }
