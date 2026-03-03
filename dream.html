@@ -558,48 +558,43 @@
 
             if (apiKey) {
                 try {
-                    const genAI = new GoogleGenerativeAI(apiKey.trim());
-                    console.log("API Key loaded (first 4 chars):", apiKey.trim().substring(0, 4) + "...");
+                    console.log("Using direct fetch for stability...");
+                    const apiURL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
 
-                    // Try multiple model/version combinations as fallbacks
-                    const configs = [
-                        { name: "gemini-1.5-flash", version: "v1" },
-                        { name: "gemini-1.5-flash-latest", version: "v1" },
-                        { name: "gemini-1.5-pro", version: "v1" },
-                        { name: "gemini-1.5-flash", version: "v1beta" }
-                    ];
+                    const response = await fetch(apiURL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`
+                                }]
+                            }]
+                        })
+                    });
 
-                    let success = false;
-                    for (const config of configs) {
-                        try {
-                            console.log(`Trying ${config.name} with API version ${config.version}...`);
-                            const model = genAI.getGenerativeModel({ model: config.name }, { apiVersion: config.version });
-                            const prompt = `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`;
-
-                            const result = await model.generateContent(prompt);
-                            aiResponse = result.response.text();
-                            success = true;
-                            console.log(`Successfully generated content using ${config.name}`);
-                            break;
-                        } catch (err) {
-                            console.warn(`Failed with ${config.name} (${config.version}):`, err);
-                            if (err.message.includes("API key")) throw err; // Key errors shouldn't retry
-                        }
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error("API Error Response:", errorData);
+                        throw new Error(errorData.error ? errorData.error.message : "Connect failed");
                     }
 
-                    if (!success) {
-                        throw new Error("All models failed to respond.");
-                    }
+                    const data = await response.json();
+                    aiResponse = data.candidates[0].content.parts[0].text;
+                    console.log("Successfully generated content via fetch.");
+
                 } catch (error) {
                     console.error("Detailed AI Error:", error);
                     if (error.message.includes("404") || error.message.includes("not found")) {
-                        aiResponse = "じょうずに夢はかせになれなかったもま...💧 魔法の鍵（APIキー）がちゃんとお部屋に届いてるか確認してみてね。";
+                        aiResponse = "じょうずに夢はかせになれなかったもま...💧 魔法の鍵（APIキー）の設定でお部屋（Google AI Studio）に間違いがないか確認してみてね。";
                     } else if (error.message.includes("API key")) {
-                        aiResponse = "魔法の鍵の形がちょっと違うみたいもま...💧 設定からもう一度貼り付け直してみてね。";
+                        aiResponse = "魔法の鍵の形がちょっと違うみたいもま...💧 設定画面でもう一度貼り付け直してみてね。";
                     } else if (error.message.includes("quota") || error.message.includes("429")) {
                         aiResponse = "お勉強しすぎて、ちょっと知恵熱が出ちゃったもま...🤒 少しお休みしてからまた教えてね。";
                     } else {
-                        aiResponse = "いちやづけじゃ難しかったもま...💧 頭がぼーっとしちゃうから、また後でお話ししよ！";
+                        aiResponse = "いちやづけじゃ難しかったもま...💧 頭がぼーっとしちゃうから、ゆっくり休んでからまたお話ししよ！";
                     }
                 }
             } else {
