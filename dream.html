@@ -567,23 +567,21 @@
             if (apiKey) {
                 try {
                     const genAI = new GoogleGenerativeAI(apiKey);
-                    // Use v1 for better stability and specific model name
-                    const model = genAI.getGenerativeModel({
-                        model: "gemini-1.5-flash"
-                    }, { apiVersion: 'v1' });
+                    // Revert to stable model name without explicit version for now
+                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
                     const prompt = `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`;
 
                     const result = await model.generateContent(prompt);
                     aiResponse = result.response.text();
                 } catch (error) {
-                    console.error("AI Error:", error);
-                    if (error.message.includes("404")) {
-                        aiResponse = "ごめんね、AIの準備がうまくいかなかったもま...💧 もう一度ページを読み込み直してみてね。";
+                    console.error("Detailed AI Error:", error);
+                    if (error.message.includes("404") || error.message.includes("not found")) {
+                        aiResponse = "ごめんね、AIさんの準備がうまくいかなかったもま...💧 APIキーの設定が正しいかもう一度確認してみてね。";
                     } else if (error.message.includes("API key")) {
                         aiResponse = "APIキーが間違っているみたいもま...💧 設定画面からもう一度確認してみてね。";
                     } else {
-                        aiResponse = "ごめんね、なんだか頭がぼーっとしちゃうもま...💧 インターネットの接続を確認してみてね。";
+                        aiResponse = "ごめんね、なんだか頭がぼーっとしちゃうもま...💧 少し時間を置いてからもう一度試してみてね。";
                     }
                 }
             } else {
