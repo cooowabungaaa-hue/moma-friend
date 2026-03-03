@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>もまちゃんの夢日記</title>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8B5A2B;
+            /* もまちゃんに合わせたブラウン */
+            --bg-color: #FDF5E6;
+            /* ノートの外側の背景 */
+            --paper-color: #FFFAF0;
+            /* ノートの紙の色 */
+            --line-color: #E8DCC7;
+            /* ノートの罫線 */
+            --accent-color: #D2B48C;
+            /* アクセントカラー */
+        }
+
+        body {
+            font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
+            background-color: var(--bg-color);
+            color: #555;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* ノート全体のスタイル */
+        .notebook {
+            background-color: var(--paper-color);
+            width: 100%;
+            max-width: 1000px;
+            min-height: 80vh;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 2px solid var(--accent-color);
+        }
+
+        /* ヘッダー */
+        .header {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .header-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-btn {
+            background: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: 0.2s;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-btn:hover {
+            transform: scale(1.05);
+            background: #fff5e1;
+        }
+
+        /* メインコンテンツ（左右2カラム） */
+        .content {
+            display: flex;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        /* 左側：記入エリア */
+        .left-page {
+            flex: 1;
+            min-width: 350px;
+            padding: 30px;
+            border-right: 2px dashed var(--line-color);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        @media (max-width: 850px) {
+            .left-page {
+                border-right: none;
+                border-bottom: 2px dashed var(--line-color);
+            }
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input[type="date"],
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid var(--line-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: white;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* ノート風のテキストエリア */
+        textarea {
+            flex: 1;
+            min-height: 300px;
+            resize: none;
+            border: 1px solid var(--line-color);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 1.1rem;
+            line-height: calc(31px + 1px);
+            background-image: repeating-linear-gradient(transparent, transparent 31px, var(--line-color) 31px, var(--line-color) 32px);
+            background-attachment: local;
+            font-family: inherit;
+            outline: none;
+            background-color: white;
+        }
+
+        .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .save-btn:hover {
+            background-color: #6b4321;
+            transform: translateY(-2px);
+        }
+
+        .save-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 右側：もまちゃん＆履歴 */
+        .right-page {
+            flex: 0.7;
+            min-width: 300px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background-color: #faf6ef;
+        }
+
+        /* もまちゃんエリア */
+        .moma-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .moma-img {
+            width: 150px;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+
+        /* 吹き出し */
+        .speech-bubble {
+            position: relative;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            width: 90%;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            min-height: 60px;
+            border: 2px solid var(--accent-color);
+            white-space: pre-wrap;
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 12px 12px 12px;
+            border-style: solid;
+            border-color: transparent transparent var(--accent-color) transparent;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: -8.5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+
+        /* 履歴エリア */
+        .history-area {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .history-area h3 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--line-color);
+            padding-bottom: 5px;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .history-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: 0.2s;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .history-item:hover {
+            background: #fffdf9;
+            transform: translateX(3px);
+            border-left-color: var(--primary-color);
+        }
+
+        .history-date {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .history-title {
+            font-weight: bold;
+            margin-top: 3px;
+            color: #444;
+        }
+
+        /* モーダル (設定画面) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .instruction-box {
+            text-align: left;
+            background: #fdfaf0;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            border: 1px solid var(--line-color);
+        }
+
+        .instruction-box ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-save-api {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-close {
+            background: #eee;
+            color: #666;
+        }
+
+        .btn-save-api:hover {
+            background: #6b4321;
+        }
+
+        .btn-close:hover {
+            background: #ddd;
+        }
+
+        /* Transition Overlay */
+        #transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff5e1;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+        }
+
+        .opacity-100 {
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="transition-overlay"></div>
+
+    <div class="notebook">
+        <header class="header">
+            <h1>🌙 もまちゃんの夢日記</h1>
+            <div class="header-btns">
+                <a href="room.html" class="header-btn" id="backBtn">🏠 お部屋に戻る</a>
+                <button class="header-btn" id="openSettingsBtn">⚙️ アドバイス機能設定</button>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="left-page">
+                <div class="input-group">
+                    <input type="date" id="dreamDate">
+                    <input type="text" id="dreamTitle" placeholder="夢のタイトル (例: 空を飛ぶ夢)">
+                </div>
+                <textarea id="dreamContent" placeholder="今日見た夢を書いてね... もまちゃんが読み解いてお返事するよ✨"></textarea>
+                <button class="save-btn" id="saveDreamBtn">📖 ノートに記録する</button>
+            </div>
+
+            <div class="right-page">
+                <div class="moma-area">
+                    <img src="./moma-idle_02.png" alt="もまちゃん" class="moma-img" id="momaImg">
+                    <div class="speech-bubble" id="momaSpeech">おはよう！今日見た夢を詳しく教えてね。<br>書き終わったらお返事するもまよ！✨</div>
+                </div>
+
+                <div class="history-area">
+                    <h3>📚 過去の夢日記</h3>
+                    <ul class="history-list" id="historyList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h2>⚙️ もまちゃんのアドバイス機能設定</h2>
+            <div class="instruction-box">
+                <p>AI（Gemini）を使ってもまちゃんがお返事できるようにします。</p>
+                <strong>手順：</strong>
+                <ol>
+                    <li><a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>にアクセスします。
+                    </li>
+                    <li>Googleアカウントでログインし、<b>「Create API key」</b>を押してキーを作成します。</li>
+                    <li>作成されたキーをコピーして、下の欄に貼り付けて保存してください。</li>
+                </ol>
+                <p><small>※APIキーはあなたのブラウザにのみ保存されます。無料枠の範囲内であれば料金はかかりません。</small></p>
+            </div>
+            <label for="apiKeyInput" style="display:block; text-align:left; font-weight:bold;">Gemini APIキー:</label>
+            <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
+            <div class="modal-buttons">
+                <button class="btn-close" id="closeSettingsBtn">キャンセル</button>
+                <button class="btn-save-api" id="saveApiBtn">保存する</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "@google/generative-ai": "https://esm.run/@google/generative-ai"
+      }
+    }
+    </script>
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        // DOM要素の取得
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const saveApiBtn = document.getElementById('saveApiBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+
+        const dreamDate = document.getElementById('dreamDate');
+        const dreamTitle = document.getElementById('dreamTitle');
+        const dreamContent = document.getElementById('dreamContent');
+        const saveDreamBtn = document.getElementById('saveDreamBtn');
+
+        const historyList = document.getElementById('historyList');
+        const momaSpeech = document.getElementById('momaSpeech');
+        const momaImg = document.getElementById('momaImg');
+        const backBtn = document.getElementById('backBtn');
+
+        // 今日の日付を初期セット
+        dreamDate.valueAsDate = new Date();
+
+        // 履歴をローカルストレージから読み込む
+        let dreams = JSON.parse(localStorage.getItem('moma_dream_diary')) || [];
+
+        // 設定モーダルの開閉
+        openSettingsBtn.onclick = () => {
+            apiKeyInput.value = localStorage.getItem('google_gemini_api_key') || '';
+            settingsModal.style.display = 'flex';
+        };
+        closeSettingsBtn.onclick = () => settingsModal.style.display = 'none';
+
+        // APIキーの保存
+        saveApiBtn.onclick = () => {
+            localStorage.setItem('google_gemini_api_key', apiKeyInput.value);
+            settingsModal.style.display = 'none';
+            alert('設定を保存したもま！');
+        };
+
+        // 履歴の描画関数
+        function renderHistory() {
+            historyList.innerHTML = '';
+            [...dreams].reverse().forEach((dream, index) => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                li.innerHTML = `
+                    <div class="history-date">${dream.date}</div>
+                    <div class="history-title">${dream.title || '無題の夢'}</div>
+                `;
+                li.onclick = () => {
+                    dreamDate.value = dream.date;
+                    dreamTitle.value = dream.title;
+                    dreamContent.value = dream.content;
+                    momaSpeech.innerHTML = dream.comment || `「${dream.title}」の夢だね！`;
+                };
+                historyList.appendChild(li);
+            });
+        }
+
+        // キャラクター情報（プロンプト用）
+        const MOMA_PROMPT = `
+あなたは「もまちゃん」という全肯定型のぬいぐるみ生命体です。
+ユーザーが書いた夢日記に対して、温かくて癒されるコメントを返してください。
+
+【キャラクター設定】
+- 一人称は「もまちゃん」または「もま」。
+- 語尾に「もま」「もまね〜」「もまよ✨」などをつけます。
+- ユーザーのことを「あなた」または登録されたニックネーム（あれば）で呼びます。
+- 性格：とにかく優しく、どんな夢も肯定します。
+- 趣味：食べること、寝ること、お散歩。
+
+【お返事のルール】
+1. 夢の内容を優しく肯定し、共感してください。
+2. 怖い夢だったら「もまが守ってあげる」と伝え、楽しい夢だったら「もまも一緒に行きたかったもま！」と喜びます。
+3. 最後に一言、ポジティブなアドバイスやメッセージを添えてください。
+4. 全体で3〜4文程度、短すぎず長すぎないお返事にしてください。
+`;
+
+        // 夢日記の保存とAI（もまちゃん）の返事
+        saveDreamBtn.onclick = async () => {
+            const date = dreamDate.value;
+            const title = dreamTitle.value;
+            const content = dreamContent.value;
+
+            if (!content.trim()) {
+                momaSpeech.innerHTML = "夢の内容が書かれてないもま...💧<br>少しでもいいから教えてね！";
+                return;
+            }
+
+            saveDreamBtn.disabled = true;
+            momaSpeech.innerHTML = "ふむふむ... 夢を読み解いてるもま...📝";
+            momaImg.src = "./moma-idle.png";
+
+            const apiKey = localStorage.getItem('google_gemini_api_key');
+            let aiResponse = "";
+
+            if (apiKey) {
+                try {
+                    const genAI = new GoogleGenerativeAI(apiKey);
+                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+                    const prompt = `${MOMA_PROMPT}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`;
+
+                    const result = await model.generateContent(prompt);
+                    aiResponse = result.response.text();
+                } catch (error) {
+                    console.error("AI Error:", error);
+                    aiResponse = "ごめんね、なんだか頭がぼーっとしちゃうもま...💧 APIキーが正しいか確認してみてね。";
+                }
+            } else {
+                aiResponse = `日記を記録したもま！「${title || '不思議な夢'}」だね✨\nアドバイス機能設定からAPIキーを入れると、もっと詳しくお返事できるもまよ！`;
+            }
+
+            // 保存処理
+            const newDream = { date, title, content, comment: aiResponse };
+            dreams.push(newDream);
+            localStorage.setItem('moma_dream_diary', JSON.stringify(dreams));
+
+            // 表示更新
+            momaSpeech.innerHTML = aiResponse;
+            momaImg.src = "./moma-idle_02.png";
+            renderHistory();
+            saveDreamBtn.disabled = false;
+
+            // 入力欄をクリア（日付は維持）
+            dreamTitle.value = '';
+            dreamContent.value = '';
+        };
+
+        // ページ遷移アニメーション
+        backBtn.onclick = (e) => {
+            e.preventDefault();
+            const url = backBtn.getAttribute('href');
+            document.getElementById('transition-overlay').classList.add('opacity-100');
+            setTimeout(() => {
+                window.location.href = url;
+            }, 600);
+        };
+
+        // 初期表示
+        renderHistory();
+    </script>
+</body>
+
+</html>
