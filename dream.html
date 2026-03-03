@@ -562,8 +562,15 @@
                     console.log("Using direct fetch for stability...");
                     console.log("Active API Key (first 6 / last 4):", trimmedKey.substring(0, 6) + "..." + trimmedKey.substring(trimmedKey.length - 4));
 
-                    // Try multiple model identifiers in case of project-specific availability issues
-                    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.5-flash-latest", "gemini-2.0-flash-exp"];
+                    // Try standard and internal/advanced model identifiers
+                    const modelsToTry = [
+                        "gemini-1.5-flash",
+                        "gemini-flash-lite-latest",
+                        "gemini-pro-latest",
+                        "gemini-2.5-flash-lite",
+                        "gemini-1.5-pro",
+                        "gemini-2.0-flash-exp"
+                    ];
                     let lastError = null;
                     let success = false;
 
