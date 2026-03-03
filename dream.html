@@ -407,7 +407,7 @@
             <h1>🌙 もまちゃんの夢日記</h1>
             <div class="header-btns">
                 <a href="room.html" class="header-btn" id="backBtn">🏠 お部屋に戻る</a>
-                <button class="header-btn" id="openSettingsBtn">⚙️ アドバイス機能設定</button>
+                <button class="header-btn" id="openSettingsBtn">⚙️ 夢のおべんきょう設定</button>
             </div>
         </header>
 
@@ -417,14 +417,14 @@
                     <input type="date" id="dreamDate">
                     <input type="text" id="dreamTitle" placeholder="夢のタイトル (例: 空を飛ぶ夢)">
                 </div>
-                <textarea id="dreamContent" placeholder="今日見た夢を書いてね... もまちゃんが読み解いてお返事するよ✨"></textarea>
+                <textarea id="dreamContent" placeholder="今日見た夢を書いてね... もまちゃんが夢はかせになって読み解くもまよ！✨"></textarea>
                 <button class="save-btn" id="saveDreamBtn">📖 ノートに記録する</button>
             </div>
 
             <div class="right-page">
                 <div class="moma-area">
                     <img src="./moma-idle_02.png" alt="もまちゃん" class="moma-img" id="momaImg">
-                    <div class="speech-bubble" id="momaSpeech">おはよう！今日見た夢を詳しく教えてね。<br>書き終わったらお返事するもまよ！✨</div>
+                    <div class="speech-bubble" id="momaSpeech">おはよう！今日見た夢を詳しく教えてね。<br>もまちゃん、夢はかせになるためにお勉強中もま！✨</div>
                 </div>
 
                 <div class="history-area">
@@ -437,23 +437,23 @@
 
     <div class="modal" id="settingsModal">
         <div class="modal-content">
-            <h2>⚙️ もまちゃんのアドバイス機能設定</h2>
+            <h2>⚙️ もまちゃん 夢のおべんきょう設定</h2>
             <div class="instruction-box">
-                <p>AI（Gemini）を使ってもまちゃんがお返事できるようにします。</p>
-                <strong>手順：</strong>
+                <p>もまちゃんが立派な「夢はかせ」になって、お返事できるようにします。</p>
+                <strong>夢のおべんきょう手順：</strong>
                 <ol>
-                    <li><a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>にアクセスします。
+                    <li><a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>にお出かけします。
                     </li>
-                    <li>Googleアカウントでログインし、<b>「Create API key」</b>を押してキーを作成します。</li>
-                    <li>作成されたキーをコピーして、下の欄に貼り付けて保存してください。</li>
+                    <li>ログインして、<b>「Create API key」</b>を押して「魔法の鍵（APIキー）」を作ります。</li>
+                    <li>鍵をコピーして、下の欄に貼り付けて保存してくださいもま！</li>
                 </ol>
-                <p><small>※APIキーはあなたのブラウザにのみ保存されます。無料枠の範囲内であれば料金はかかりません。</small></p>
+                <p><small>※魔法の鍵はあなたのブラウザにだけそっと保存されます。無料の範囲なら、おやつ代はかからないので安心してもま！</small></p>
             </div>
-            <label for="apiKeyInput" style="display:block; text-align:left; font-weight:bold;">Gemini APIキー:</label>
+            <label for="apiKeyInput" style="display:block; text-align:left; font-weight:bold;">魔法の鍵（APIキー）:</label>
             <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
             <div class="modal-buttons">
-                <button class="btn-close" id="closeSettingsBtn">キャンセル</button>
-                <button class="btn-save-api" id="saveApiBtn">保存する</button>
+                <button class="btn-close" id="closeSettingsBtn">やめとく</button>
+                <button class="btn-save-api" id="saveApiBtn">保存するもま！</button>
             </div>
         </div>
     </div>
@@ -558,7 +558,7 @@
             }
 
             saveDreamBtn.disabled = true;
-            momaSpeech.innerHTML = "ふむふむ... 夢を読み解いてるもま...📝";
+            momaSpeech.innerHTML = "ふむふむ... 夢はかせのお勉強を思い出してるもま...📝";
             momaImg.src = "./moma-idle.png";
 
             const apiKey = localStorage.getItem('google_gemini_api_key');
@@ -601,17 +601,17 @@
                 } catch (error) {
                     console.error("Detailed AI Error:", error);
                     if (error.message.includes("404") || error.message.includes("not found")) {
-                        aiResponse = "ごめんね、AIさんの準備がうまくいかなかったもま...💧 APIキーの設定（Google AI Studio）で『Gemini API』が有効か確認してみてね。";
+                        aiResponse = "じょうずに夢はかせになれなかったもま...💧 魔法の鍵（APIキー）がちゃんとお部屋に届いてるか確認してみてね。";
                     } else if (error.message.includes("API key")) {
-                        aiResponse = "APIキーが間違っているみたいもま...💧 設定画面でもう一度貼り付け直してみてね。";
+                        aiResponse = "魔法の鍵の形がちょっと違うみたいもま...💧 設定からもう一度貼り付け直してみてね。";
                     } else if (error.message.includes("quota") || error.message.includes("429")) {
-                        aiResponse = "ごめんね、ちょっとお話しすぎちゃったもま...💧 少し時間を置いてからまた教えてね。";
+                        aiResponse = "お勉強しすぎて、ちょっと知恵熱が出ちゃったもま...🤒 少しお休みしてからまた教えてね。";
                     } else {
-                        aiResponse = "ごめんね、なんだか頭がぼーっとしちゃうもま...💧 少し時間を置いてからもう一度試してみてね。";
+                        aiResponse = "いちやづけじゃ難しかったもま...💧 頭がぼーっとしちゃうから、また後でお話ししよ！";
                     }
                 }
             } else {
-                aiResponse = `日記を記録したもま！「${title || '不思議な夢'}」だね✨\n設定からAPIキーを入れると、もまちゃんが心理学の観点で詳しくお返事するもまよ！`;
+                aiResponse = `日記を記録したもま！「${title || '不思議な夢'}」だね✨\n設定から「魔法の鍵」を教えてくれると、もまちゃんが立派な夢はかせになってお返事するもまよ！`;
             }
 
             // 保存処理
