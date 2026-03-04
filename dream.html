@@ -555,89 +555,102 @@
             saveDreamBtn.disabled = true;
             momaSpeech.innerHTML = "ふむふむ... 夢はかせのお勉強を思い出してるもま...📝";
             momaImg.src = "./moma-idle.png";
-
+            const apiKey = localStorage.getItem('google_gemini_api_key');
             const userName = localStorage.getItem('moma_user_nickname') || '';
             const nameInstruction = userName
                 ? `ユーザーのなまえ：${userName}\nこれに対して、必ず「${userName}」と呼びかけながらお返事してください。`
                 : `ユーザーのなまえ：未設定\n二人称（あなた、君など）は使わずに、名前を呼ばない自然な形で直接語りかけてください。`;
             let aiResponse = "";
 
-            if (apiKey) {
-                try {
-                    const trimmedKey = apiKey.trim();
-                    console.log("Using direct fetch for stability...");
-                    console.log("Active API Key (first 6 / last 4):", trimmedKey.substring(0, 6) + "..." + trimmedKey.substring(trimmedKey.length - 4));
-                    console.log("User Name:", userName || "(Not Set)");
+            try {
+                if (apiKey) {
+                    try {
+                        const trimmedKey = apiKey.trim();
+                        console.log("Using direct fetch for stability...");
+                        console.log("Active API Key (first 6 / last 4):", trimmedKey.substring(0, 6) + "..." + trimmedKey.substring(trimmedKey.length - 4));
+                        console.log("User Name:", userName || "(Not Set)");
 
-                    // Try standard and internal/advanced model identifiers
-                    const modelsToTry = [
-                        "gemini-1.5-flash",
-                        "gemini-flash-lite-latest",
-                        "gemini-pro-latest",
-                        "gemini-2.5-flash-lite",
-                        "gemini-1.5-pro",
-                        "gemini-2.0-flash-exp"
-                    ];
-                    let lastError = null;
-                    let success = false;
+                        // Try standard and internal/advanced model identifiers
+                        const modelsToTry = [
+                            "gemini-1.5-flash",
+                            "gemini-flash-lite-latest",
+                            "gemini-pro-latest",
+                            "gemini-2.5-flash-lite",
+                            "gemini-1.5-pro",
+                            "gemini-2.0-flash-exp"
+                        ];
+                        let lastError = null;
+                        let success = false;
 
-                    for (const modelName of modelsToTry) {
-                        try {
-                            console.log(`Trying model: ${modelName}...`);
-                            const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${trimmedKey}`;
+                        for (const modelName of modelsToTry) {
+                            try {
+                                console.log(`Trying model: ${modelName}...`);
+                                const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${trimmedKey}`;
 
-                            const response = await fetch(apiURL, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    contents: [{
-                                        parts: [{
-                                            text: `${MOMA_PROMPT}\n\n${nameInstruction}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`
+                                const response = await fetch(apiURL, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        contents: [{
+                                            parts: [{
+                                                text: `${MOMA_PROMPT}\n\n${nameInstruction}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`
+                                            }]
                                         }]
-                                    }]
-                                })
-                            });
+                                    })
+                                });
 
-                            if (response.ok) {
-                                const data = await response.json();
-                                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                                    aiResponse = data.candidates[0].content.parts[0].text;
-                                    console.log(`Successfully generated content via ${modelName}.`);
-                                    success = true;
-                                    break;
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                                        aiResponse = data.candidates[0].content.parts[0].text;
+                                        console.log(`Successfully generated content via ${modelName}.`);
+                                        success = true;
+                                        break;
+                                    }
+                                } else {
+                                    const errorData = await response.json();
+                                    console.warn(`Model ${modelName} failed:`, errorData);
+                                    lastError = errorData.error ? errorData.error.message : "Connect failed";
+                                    if (lastError.includes("API key")) break; // Don't retry different models if key is invalid
                                 }
-                            } else {
-                                const errorData = await response.json();
-                                console.warn(`Model ${modelName} failed:`, errorData);
-                                lastError = errorData.error ? errorData.error.message : "Connect failed";
-                                if (lastError.includes("API key")) break; // Don't retry different models if key is invalid
+                            } catch (e) {
+                                console.warn(`Error trying ${modelName}:`, e);
+                                lastError = e.message;
                             }
-                        } catch (e) {
-                            console.warn(`Error trying ${modelName}:`, e);
-                            lastError = e.message;
+                        }
+
+                        if (!success) {
+                            throw new Error(lastError || "All models failed");
+                        }
+
+                    } catch (error) {
+                        console.error("Detailed AI Error:", error);
+                        if (error.message.includes("404") || error.message.includes("not found")) {
+                            aiResponse = "じょうずに夢はかせになれなかったもま...💧 魔法の鍵（APIキー）の設定でお部屋（Google AI Studio）に間違いがないか確認してみてね。";
+                        } else if (error.message.includes("API key")) {
+                            aiResponse = "魔法の鍵の形がちょっと違うみたいもま...💧 設定画面でもう一度貼り付け直してみてね。";
+                        } else if (error.message.includes("quota") || error.message.includes("429")) {
+                            aiResponse = "お勉強しすぎて、ちょっと知恵熱が出ちゃったもま...🤒 少しお休みしてからまた教えてね。";
+                        } else {
+                            aiResponse = `いちやづけじゃ難しかったもま...💧 (${error.message})`;
                         }
                     }
-
-                    if (!success) {
-                        throw new Error(lastError || "All models failed");
-                    }
-
-                } catch (error) {
-                    console.error("Detailed AI Error:", error);
-                    if (error.message.includes("404") || error.message.includes("not found")) {
-                        aiResponse = "じょうずに夢はかせになれなかったもま...💧 魔法の鍵（APIキー）の設定でお部屋（Google AI Studio）に間違いがないか確認してみてね。";
-                    } else if (error.message.includes("API key")) {
-                        aiResponse = "魔法の鍵の形がちょっと違うみたいもま...💧 設定画面でもう一度貼り付け直してみてね。";
-                    } else if (error.message.includes("quota") || error.message.includes("429")) {
-                        aiResponse = "お勉強しすぎて、ちょっと知恵熱が出ちゃったもま...🤒 少しお休みしてからまた教えてね。";
-                    } else {
-                        aiResponse = `いちやづけじゃ難しかったもま...💧 (${error.message})`;
-                    }
+                } else {
+                    aiResponse = `日記を記録したもま！「${title || '不思議な夢'}」だね✨\n設定から「魔法の鍵」を教えてくれると、もまちゃんが立派な夢はかせになってお返事するもまよ！`;
                 }
-            } else {
-                aiResponse = `日記を記録したもま！「${title || '不思議な夢'}」だね✨\n設定から「魔法の鍵」を教えてくれると、もまちゃんが立派な夢はかせになってお返事するもまよ！`;
+            } catch (error) {
+                console.error("Detailed AI Error:", error);
+                if (error.message.includes("404") || error.message.includes("not found")) {
+                    aiResponse = "じょうずに夢はかせになれなかったもま...💧 魔法の鍵（APIキー）の設定でお部屋（Google AI Studio）に間違いがないか確認してみてね。";
+                } else if (error.message.includes("API key")) {
+                    aiResponse = "魔法の鍵の形がちょっと違うみたいもま...💧 設定画面でもう一度貼り付け直してみてね。";
+                } else if (error.message.includes("quota") || error.message.includes("429")) {
+                    aiResponse = "お勉強しすぎて、ちょっと知恵熱が出ちゃったもま...🤒 少しお休みしてからまた教えてね。";
+                } else {
+                    aiResponse = `いちやづけじゃ難しかったもま...💧 (${error.message})`;
+                }
             }
 
             // 保存処理
