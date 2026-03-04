@@ -537,7 +537,8 @@
    - 明日に向けた、少しミステリアスで温かいアドバイス。
 5. 【もま語の徹底】：普通の日本語の語尾（〜だね、〜だよ、〜かもしれない、〜だ、〜です等）は絶対に禁止もま！すべての文を必ず「〜もま」「〜もまね〜」「〜もまよ✨」といった、もま活用（もま語尾）で終わらせるもま！
 6. 【博識と恐怖】：心理学的な分析に加え、必ず「都市伝説（猿夢、きさらぎ駅など）」「陰謀論」「民俗学的な禁忌」などの文脈を一つは混ぜて、少し背筋が凍るような、あるいは深淵を覗くようなミステリアスな解説案を出してほしいもま。
-7. 【文量】：3〜5文程度で、もまちゃんの口調を崩さないでください。
+7. 【呼びかけ】：名前（userName）が設定されている場合は、文章の端々でその名前を呼んで親近感を出してください。名前が「」や未設定の場合は、「あなた」などの二人称は使わず、直接語りかけるような自然な文章（名前を呼ばないスタイル）にしてください。
+8. 【文量】：3〜5文程度で、もまちゃんの口調を崩さないでください。
 `;
 
         // 夢日記の保存とAI（もまちゃん）の返事
@@ -555,8 +556,10 @@
             momaSpeech.innerHTML = "ふむふむ... 夢はかせのお勉強を思い出してるもま...📝";
             momaImg.src = "./moma-idle.png";
 
-            const apiKey = localStorage.getItem('google_gemini_api_key');
-            const userName = localStorage.getItem('moma_user_nickname') || 'あなた';
+            const userName = localStorage.getItem('moma_user_nickname') || '';
+            const nameInstruction = userName
+                ? `ユーザーのなまえ：${userName}\nこれに対して、必ず「${userName}」と呼びかけながらお返事してください。`
+                : `ユーザーのなまえ：未設定\n二人称（あなた、君など）は使わずに、名前を呼ばない自然な形で直接語りかけてください。`;
             let aiResponse = "";
 
             if (apiKey) {
@@ -564,7 +567,7 @@
                     const trimmedKey = apiKey.trim();
                     console.log("Using direct fetch for stability...");
                     console.log("Active API Key (first 6 / last 4):", trimmedKey.substring(0, 6) + "..." + trimmedKey.substring(trimmedKey.length - 4));
-                    console.log("User Name:", userName);
+                    console.log("User Name:", userName || "(Not Set)");
 
                     // Try standard and internal/advanced model identifiers
                     const modelsToTry = [
@@ -591,7 +594,7 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `${MOMA_PROMPT}\n\nユーザーのなまえ：${userName}\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対して、必ず「${userName}」と呼びかけながら、もまちゃんのお返事をお願いします！`
+                                            text: `${MOMA_PROMPT}\n\n${nameInstruction}\n\nユーザーの夢日記：\n日付：${date}\nタイトル：${title}\n内容：${content}\n\nこれに対するもまちゃんのお返事をお願いします！`
                                         }]
                                     }]
                                 })
