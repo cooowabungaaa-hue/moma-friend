@@ -471,8 +471,13 @@
             z-index: 100;
             /* Ensure it appears above modals */
             display: none;
-            max-width: 320px;
+            max-width: 90vw;
+            width: max-content;
+            min-width: 120px;
             text-align: center;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            line-height: 1.5;
         }
 
         .speech-bubble::after {
