@@ -478,6 +478,8 @@
             white-space: pre-wrap;
             overflow-wrap: break-word;
             line-height: 1.5;
+            max-height: 40vh;
+            overflow-y: auto;
         }
 
         .speech-bubble::after {
@@ -811,30 +813,30 @@
             </div>
         </div>
 
-        <!-- Settings/Reset Modal -->
+        <!-- Settings Modal (Combined Name & Birthday) -->
         <div id="settings-modal" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-title">せってい</div>
-                <div id="current-name-display" class="mb-4 text-gray-600"></div>
-                <button id="reset-name-btn" class="modal-btn btn-reset" onclick="resetNickname()"
-                    style="display:none;">おなまえの登録をけす</button>
 
-                <!-- Name Registration (If not set) -->
-                <div id="settings-name-input-container" class="mt-4" style="display:none;">
-                    <p class="text-xs text-gray-400 mb-2">おなまえをおしえてね！(ひらがな)</p>
+                <div class="mt-4 text-left">
+                    <label
+                        style="color: #FFB6C1; font-weight: bold; display: block; margin-bottom: 5px;">おなまえ（ひらがな）</label>
                     <input type="text" id="settings-name-input" class="modal-input" placeholder="なまえ" maxlength="10">
-                    <button class="modal-btn btn-confirm" style="margin-top:5px;"
-                        onclick="requestNicknameFromSettings()">決定</button>
                 </div>
 
-                <div class="mt-4">
+                <div class="mt-4 text-left">
                     <label
                         style="color: #FFB6C1; font-weight: bold; display: block; margin-bottom: 5px;">お誕生日（任意）</label>
                     <input type="date" id="birthdate-input" class="modal-input" style="font-family: inherit;">
                 </div>
-                <div class="mt-4">
-                    <button class="modal-btn btn-confirm" onclick="saveBirthdate(this)">保存する</button>
+
+                <div class="modal-btn-container mt-6">
+                    <button class="modal-btn btn-confirm" onclick="saveCombinedSettings()">決定</button>
                     <button class="modal-btn btn-cancel" onclick="closeModal('settings-modal')">とじる</button>
+                </div>
+
+                <div id="reset-area" style="margin-top: 2rem; border-top: 1px dashed #eee; padding-top: 1rem;">
+                    <button id="reset-name-btn" class="modal-btn btn-reset" onclick="resetNickname()">おなまえをリセット</button>
                 </div>
             </div>
         </div>
@@ -1332,44 +1334,57 @@
         // --- Nickname System Logic ---
         let userNickname = localStorage.getItem('moma_user_nickname') || '';
         let currentSuggestion = '';
-        let currentBaseName = '';
+        let currentBaseName = localStorage.getItem('moma_user_base_name') || '';
 
 
         function openSettings() {
-            const settingsModal = document.getElementById('settings-modal');
-            const nameDisplay = document.getElementById('current-name-display');
+            const nameInput = document.getElementById('settings-name-input');
+            const birthInput = document.getElementById('birthdate-input');
             const resetBtn = document.getElementById('reset-name-btn');
-            const nameInputContainer = document.getElementById('settings-name-input-container');
 
-            if (userNickname) {
-                nameDisplay.innerText = `いまのおなまえ：${userNickname}`;
-                resetBtn.style.display = 'inline-block';
-                nameInputContainer.style.display = 'none';
-            } else {
-                nameDisplay.innerText = 'おなまえが登録されていません';
-                resetBtn.style.display = 'none';
-                nameInputContainer.style.display = 'block';
-            }
+            // Fill current values (using base name if possible or current nickname)
+            nameInput.value = currentBaseName || userNickname || '';
+            birthInput.value = userBirthdate || '';
+
+            resetBtn.style.display = userNickname ? 'inline-block' : 'none';
+
             openModal('settings-modal');
         }
 
-        function requestNicknameFromSettings() {
-            const input = document.getElementById('settings-name-input');
-            const baseName = input.value.trim();
+        function saveCombinedSettings() {
+            const nameInput = document.getElementById('settings-name-input');
+            const birthInput = document.getElementById('birthdate-input');
+            const newBaseName = nameInput.value.trim();
+            const newBirthdate = birthInput.value;
 
-            if (!baseName) {
-                alert('おなまえをいれてね！');
-                return;
+            // 1. Handle Birthdate
+            if (newBirthdate !== userBirthdate) {
+                userBirthdate = newBirthdate;
+                if (userBirthdate) {
+                    localStorage.setItem('moma_user_birthdate', userBirthdate);
+                } else {
+                    localStorage.removeItem('moma_user_birthdate');
+                }
             }
 
-            if (!/^[ぁ-んー]+$/.test(baseName)) {
-                alert('ひらがなでいれてね✨');
-                return;
+            // 2. Handle Name
+            if (newBaseName) {
+                if (!/^[ぁ-んー]+$/.test(newBaseName)) {
+                    alert('おなまえは「ひらがな」でいれてね✨');
+                    return;
+                }
+
+                // If name changed or we don't have a nickname yet, suggest one
+                if (newBaseName !== currentBaseName || !userNickname) {
+                    currentBaseName = newBaseName;
+                    generateAndShowSuggestion();
+                    return; // Sequential flow
+                }
             }
 
-            // Store for re-rolls
-            currentBaseName = baseName;
-            generateAndShowSuggestion();
+            // If only birthdate or no changes
+            closeModal('settings-modal');
+            showBubble("せっていを保存したもま！✨");
         }
 
         // --- History & UI State Management ---
@@ -1425,26 +1440,12 @@
         }
 
         function requestNickname() {
-            // If we have a stored base name, use it.
-            if (!currentBaseName) {
-                const input = document.getElementById('settings-name-input');
-                if (input && input.value) {
-                    currentBaseName = input.value.trim();
-                } else {
-                    const oldInput = document.getElementById('base-name-input');
-                    if (oldInput && oldInput.value) {
-                        currentBaseName = oldInput.value.trim();
-                    }
-                }
-
-                if (!currentBaseName) {
-                    alert("お名前がわかりません...もう一度設定から入力してね！");
-                    closeModal('suggestion-modal');
-                    openSettings();
-                    return;
-                }
+            // Re-roll from suggestion modal
+            if (currentBaseName) {
+                generateAndShowSuggestion();
+            } else {
+                openSettings(); // Should not happen often
             }
-            generateAndShowSuggestion();
         }
 
         function generateAndShowSuggestion() {
@@ -1462,6 +1463,7 @@
         function saveNickname() {
             userNickname = currentSuggestion;
             localStorage.setItem('moma_user_nickname', userNickname);
+            localStorage.setItem('moma_user_base_name', currentBaseName);
             closeModal('suggestion-modal');
             showBubble(`${userNickname}、よろしくもま！💕`);
 
@@ -1507,20 +1509,7 @@
         }
 
         function saveBirthdate(btnElement) {
-            const input = document.getElementById('birthdate-input').value;
-            if (input) {
-                userBirthdate = input;
-                localStorage.setItem('moma_user_birthdate', userBirthdate);
-                showBubble("お誕生日をおぼえたもま！🎂");
-
-                // Visual Feedback
-                const btn = btnElement || document.querySelector('#settings-modal .btn-confirm:last-of-type');
-                animateButtonSuccess(btn, "保存する");
-            } else {
-                localStorage.removeItem('moma_user_birthdate');
-                userBirthdate = '';
-                showBubble("お誕生日をわすれたもま...");
-            }
+            // Deprecated - handled by saveCombinedSettings
         }
 
         function openBiorhythm() {
@@ -2056,19 +2045,36 @@
 
         function updateBubblePosition() {
             if (momaBubble.style.display === 'block') {
-                const bubbleX = (momaX + 125 - momaBubble.offsetWidth / 2);
-                const bubbleY = (momaY - momaBubble.offsetHeight - 20);
-
-                // Clamp within screen horizontal
+                const bubbleWidth = momaBubble.offsetWidth;
+                const bubbleHeight = momaBubble.offsetHeight;
                 const padding = 10;
-                const clampedX = Math.max(padding, Math.min(bubbleX, window.innerWidth - momaBubble.offsetWidth - padding));
 
-                // If character is too high, show bubble below instead
-                let finalY = bubbleY;
+                // Horizontal clamping
+                const bubbleX = (momaX + 125 - bubbleWidth / 2);
+                const clampedX = Math.max(padding, Math.min(bubbleX, window.innerWidth - bubbleWidth - padding));
+
+                // Vertical logic: check available space above and below
+                const spaceAbove = momaY - padding;
+                const spaceBelow = window.innerHeight - (momaY + moma.offsetHeight) - padding;
+
+                let finalY;
                 momaBubble.classList.remove('bubble-below');
-                if (bubbleY < 10) {
+
+                // If enough space above, default to above. 
+                // Otherwise, if more space below, flip to below.
+                if (spaceAbove > bubbleHeight + 20) {
+                    finalY = momaY - bubbleHeight - 20;
+                } else if (spaceBelow > bubbleHeight + 20) {
                     finalY = momaY + moma.offsetHeight + 10;
                     momaBubble.classList.add('bubble-below');
+                } else {
+                    // Fits on neither perfectly, pick the larger area and clamp or scroll handles it
+                    if (spaceAbove > spaceBelow) {
+                        finalY = Math.max(padding, momaY - bubbleHeight - 20);
+                    } else {
+                        finalY = Math.min(window.innerHeight - bubbleHeight - padding, momaY + moma.offsetHeight + 10);
+                        momaBubble.classList.add('bubble-below');
+                    }
                 }
 
                 momaBubble.style.left = clampedX + 'px';
