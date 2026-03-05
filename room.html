@@ -467,9 +467,7 @@
             color: #333;
             font-weight: bold;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             z-index: 100;
-            /* Ensure it appears above modals */
             display: none;
             max-width: 90vw;
             width: max-content;
@@ -479,6 +477,12 @@
             overflow-wrap: break-word;
             line-height: 1.5;
             max-height: 40vh;
+            overflow-y: hidden;
+            /* Prevent unnecessary scrollbars */
+            box-sizing: border-box;
+        }
+
+        .speech-bubble.scrollable {
             overflow-y: auto;
         }
 
@@ -973,6 +977,7 @@
         }
 
         function navigateWithTransition(url) {
+            hideBubble();
             const overlay = document.getElementById('transition-overlay');
             overlay.classList.remove('opacity-0');
             overlay.classList.add('opacity-100');
@@ -1168,6 +1173,7 @@
 
         function toggleFoodMenu() {
             if (state === 'SLEEPING') return;
+            hideBubble();
             const menu = document.getElementById('food-menu');
             menu.classList.toggle('active');
         }
@@ -1234,6 +1240,7 @@
                 wakeUpMoma();
                 return;
             }
+            hideBubble();
             const menu = document.getElementById('sleep-menu');
             menu.classList.toggle('active');
 
@@ -1389,6 +1396,7 @@
 
         // --- History & UI State Management ---
         function openModal(id) {
+            hideBubble();
             // Push state if not already handled by popstate
             // If we are already in a modal state, we might want to push another or replace
             // For simplicity, we stack them.
@@ -1759,6 +1767,7 @@
         }
 
         function _internalOpenChat() {
+            hideBubble();
             showTopics();
             topicMenu.style.display = 'flex';
         }
@@ -1904,6 +1913,7 @@
             }
 
             if (isAuto && topic === '夢占いして🌙') {
+                hideBubble();
                 currentTopic = topic;
                 menuTopics.style.display = 'none';
                 menuInput.style.display = 'flex';
@@ -1913,6 +1923,7 @@
                 return;
             }
             currentTopic = topic;
+            hideBubble();
             menuTopics.style.display = 'none';
             menuInput.style.display = 'flex';
             menuInstruction.innerText = `「${topic}」についておしえて！`;
@@ -2009,8 +2020,15 @@
         }
 
         let bubbleTimer = null;
-        function showBubble(text) {
+        function hideBubble() {
             if (bubbleTimer) clearTimeout(bubbleTimer);
+            momaBubble.style.display = 'none';
+            momaBubble.classList.remove('scrollable');
+            bubbleTimer = null;
+        }
+
+        function showBubble(text) {
+            hideBubble();
 
             // Occasionally add name to bubble if registered
             let displayText = text;
@@ -2032,14 +2050,18 @@
             momaBubble.innerText = displayText;
             momaBubble.style.display = 'block';
 
-            // Position bubble above Moma
+            // Check if scrollbar is needed (after display: block so dimensions are calculated)
+            if (momaBubble.scrollHeight > momaBubble.offsetHeight + 1) {
+                momaBubble.classList.add('scrollable');
+            }
+
+            // Position bubble
             updateBubblePosition();
 
             // Hide after a while (dynamic duration based on text length)
             const duration = Math.max(5000, 3000 + displayText.length * 100);
             bubbleTimer = setTimeout(() => {
-                momaBubble.style.display = 'none';
-                bubbleTimer = null;
+                hideBubble();
             }, duration);
         }
 
@@ -2048,31 +2070,33 @@
                 const bubbleWidth = momaBubble.offsetWidth;
                 const bubbleHeight = momaBubble.offsetHeight;
                 const padding = 10;
+                const menuAreaHeight = document.getElementById('menu-area').offsetHeight || 80;
 
                 // Horizontal clamping
                 const bubbleX = (momaX + 125 - bubbleWidth / 2);
                 const clampedX = Math.max(padding, Math.min(bubbleX, window.innerWidth - bubbleWidth - padding));
 
-                // Vertical logic: check available space above and below
+                // Vertical logic: check available space above and below, avoiding the menu area
                 const spaceAbove = momaY - padding;
-                const spaceBelow = window.innerHeight - (momaY + moma.offsetHeight) - padding;
+                const safeBelowY = window.innerHeight - menuAreaHeight - padding;
+                const spaceBelow = Math.max(0, safeBelowY - (momaY + moma.offsetHeight));
 
                 let finalY;
                 momaBubble.classList.remove('bubble-below');
 
-                // If enough space above, default to above. 
-                // Otherwise, if more space below, flip to below.
+                // If plenty of space above, prefer above.
                 if (spaceAbove > bubbleHeight + 20) {
                     finalY = momaY - bubbleHeight - 20;
-                } else if (spaceBelow > bubbleHeight + 20) {
+                } else if (spaceBelow > bubbleHeight + 10) {
+                    // If not enough above, try below but keep it above menu area
                     finalY = momaY + moma.offsetHeight + 10;
                     momaBubble.classList.add('bubble-below');
                 } else {
-                    // Fits on neither perfectly, pick the larger area and clamp or scroll handles it
+                    // Fits on neither perfectly, pick the larger area and clamp
                     if (spaceAbove > spaceBelow) {
                         finalY = Math.max(padding, momaY - bubbleHeight - 20);
                     } else {
-                        finalY = Math.min(window.innerHeight - bubbleHeight - padding, momaY + moma.offsetHeight + 10);
+                        finalY = Math.min(safeBelowY - bubbleHeight, momaY + moma.offsetHeight + 10);
                         momaBubble.classList.add('bubble-below');
                     }
                 }
