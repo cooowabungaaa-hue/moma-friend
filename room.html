@@ -791,18 +791,6 @@
             <img src="./moma-idle.png" id="moma-look-up" alt="looking up moma">
         </div>
 
-        <!-- Name Registration Modal -->
-        <div id="name-modal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="modal-title">おなまえをおしえて！</div>
-                <p class="text-xs text-gray-400 mb-4">ひらがなでいれてね✨</p>
-                <input type="text" id="base-name-input" class="modal-input" placeholder="なまえ（ひらがな）" maxlength="10">
-                <div class="modal-btn-container">
-                    <button class="modal-btn btn-cancel" onclick="closeModal('name-modal')">やめとく</button>
-                    <button class="modal-btn btn-confirm" onclick="requestNickname()">おしえる！</button>
-                </div>
-            </div>
-        </div>
 
         <!-- Nickname Suggestion Modal -->
         <div id="suggestion-modal" class="modal-overlay">
@@ -1148,6 +1136,7 @@
         }
 
         function petMoma() {
+            hideBubble();
             if (state === 'SLEEPING') {
                 createHeart(momaX + 125, momaY, "💤");
                 showBubble("すやすや...💤");
@@ -1442,6 +1431,7 @@
         });
 
         function _internalCloseAllOverlays() {
+            hideBubble();
             const modals = document.querySelectorAll('.modal-overlay');
             modals.forEach(m => m.style.display = 'none');
             document.getElementById('topic-menu').style.display = 'none';
@@ -1761,6 +1751,7 @@
         let currentTopic = '';
 
         function openChat() {
+            hideBubble();
             if (state === 'SLEEPING') return;
             history.pushState({ ui: 'menu' }, '', '#chat');
             _internalOpenChat();
