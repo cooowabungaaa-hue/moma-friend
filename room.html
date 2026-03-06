@@ -983,7 +983,12 @@
             // Set Image and Animation based on State
             switch (state) {
                 case 'IDLE':
-                    momaImg.src = isSmiling ? './moma-idle_02.png' : './moma-idle.png';
+                    if (isSmiling) {
+                        momaImg.src = './moma-leaf-happy.jpg';
+                    } else {
+                        // 10% chance for a rare upside-down idle
+                        momaImg.src = Math.random() < 0.1 ? './moma-upsidedown-idle.jpg' : './moma-idle.png';
+                    }
                     moma.classList.add('breathe');
                     break;
                 case 'WALKING':
@@ -991,11 +996,19 @@
                     moma.classList.add('walk');
                     break;
                 case 'EATING':
-                    momaImg.src = './moma-eat_02.png'; // Improved: always use smiling for eating
+                    momaImg.src = './moma-eat_02.png';
                     moma.classList.add('breathe');
                     break;
                 case 'SLEEPING':
-                    momaImg.src = './moma-sleep.png';
+                    // Randomize sleeping pose
+                    const sleepRand = Math.random();
+                    if (sleepRand < 0.33) {
+                        momaImg.src = './moma-leaf-sleep.png';
+                    } else if (sleepRand < 0.66) {
+                        momaImg.src = './moma-upsidedown-sleep.jpg';
+                    } else {
+                        momaImg.src = './moma-sleep.png';
+                    }
                     moma.classList.add('breathe');
                     break;
             }

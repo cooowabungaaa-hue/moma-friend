@@ -555,7 +555,7 @@
 
             saveDreamBtn.disabled = true;
             momaSpeech.innerHTML = "ふむふむ... 夢はかせのお勉強を思い出してるもま...📝";
-            momaImg.src = "./moma-idle.png";
+            momaImg.src = "./moma-upsidedown-idle.jpg";
             const apiKey = localStorage.getItem('google_gemini_api_key');
             const userName = localStorage.getItem('moma_user_nickname') || '';
             const nameInstruction = userName
@@ -661,7 +661,7 @@
 
             // 表示更新
             momaSpeech.innerHTML = aiResponse;
-            momaImg.src = "./moma-idle_02.png";
+            momaImg.src = "./moma-leaf-happy.jpg";
             renderHistory();
             saveDreamBtn.disabled = false;
 
